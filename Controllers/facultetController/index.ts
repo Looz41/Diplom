@@ -1,8 +1,7 @@
-import { ObjectId } from 'mongodb';
 import Facultets from '../../models/Facultets/index';
 import Groups from '../../models/Groups/index';
-import Audithories from '../../models/Audithories/index';
 import { Request, Response } from 'express';
+import { ObjectId } from 'mongodb';
 const { validationResult } = require('express-validator');
 
 class facultetController {
@@ -14,7 +13,7 @@ class facultetController {
                 return;
             }
 
-            const { name, groups, audithories } = req.body;
+            const { name, groups } = req.body;
 
             const existingFacultet = await Facultets.findOne({ name });
             if (existingFacultet) {
@@ -22,56 +21,36 @@ class facultetController {
                 return;
             }
 
-            const savedGroups = [];
-            for (const groupName of groups) {
-                let existingGroup = await Groups.findOne({ name: groupName });
-
-                if (!existingGroup) {
-                    const groupObject = new Groups({ name: groupName });
-                    existingGroup = await groupObject.save();
-                }
-
-                savedGroups.push(existingGroup._id);
+            const invalidGroups = groups.filter(groupName => !groupName.includes('-К'));
+            if (invalidGroups.length > 0) {
+                res.status(400).json({ result: false, message: `Некорректные названия групп: ${invalidGroups.join(', ')}. Название группы должно содержать "-К"` });
+                return;
             }
 
-            const courses = [];
-            for (const group of groups) {
-                const courseNumber = group.split('-К')[1].slice(0, 1);
-                let existingCourse = courses.find(course => course.name === courseNumber);
+            const existingGroups = await Promise.all(groups.map(async (groupName) => {
+                return await Groups.findOne({ name: groupName });
+            }));
 
-                if (!existingCourse) {
-                    existingCourse = { name: courseNumber, groups: [] };
-                    courses.push(existingCourse);
-                }
-
-                const groupObject = await Groups.findOne({ name: group });
-                if (groupObject) {
-                    existingCourse.groups.push(groupObject._id);
-                }
-            }
-
-            const savedAudithories = [];
-            for (const audithoryName of audithories) {
-                let existingAudithory = await Audithories.findOne({ name: audithoryName });
-
-                if (!existingAudithory) {
-                    const audithoryObject = new Audithories({ name: audithoryName });
-                    existingAudithory = await audithoryObject.save();
-                }
-
-                savedAudithories.push(existingAudithory._id);
+            if (existingGroups.some(group => group !== null)) {
+                res.status(400).json({ result: false, message: `Одна или несколько групп уже существуют` });
+                return;
             }
 
             const newFacultet = new Facultets({
-                name,
-                courses: courses.map(course => ({
-                    name: course.name,
-                    groups: course.groups.map(groupId => new ObjectId(groupId))
-                })),
-                audithories: savedAudithories
+                name
             });
 
             await newFacultet.save();
+
+            for (const groupName of groups) {
+                const newGroup = new Groups({
+                    name: groupName,
+                    course: groupName.split('-К')[1].slice(0, 1),
+                    facultet: newFacultet._id
+                });
+
+                await newGroup.save();
+            }
 
             res.json({ result: true, message: `Факультет ${name} был успешно создан 😊` });
         } catch (error) {
@@ -80,44 +59,96 @@ class facultetController {
         }
     }
 
+
+
+
     async getFacultets(req, res) {
         try {
-            const facultets = await Facultets.find()
-                .populate({
-                    path: 'courses',
-                    populate: {
-                        path: 'groups',
-                        model: 'Groups'
+            const facultets = await Facultets.aggregate([
+                {
+                    $lookup: {
+                        from: "groups",
+                        localField: "_id",
+                        foreignField: "facultet",
+                        as: "groups"
                     }
-                })
-                .populate('audithories')
-                .exec();
-            res.json({ facultets });
-        } catch (e) {
-            console.log(e);
-            res.status(500).json({ error: 'Ошибка при получении факультетов' });
+                },
+                {
+                    $unwind: "$groups"
+                },
+                {
+                    $group: {
+                        _id: {
+                            facultetId: "$_id",
+                            courseId: "$groups.course"
+                        },
+                        facultetName: { $first: "$name" },
+                        course: { $first: "$groups.course" },
+                        groups: { $push: { _id: "$groups._id", name: "$groups.name" } }
+                    }
+                },
+                {
+                    $group: {
+                        _id: "$_id.facultetId",
+                        name: { $first: "$facultetName" },
+                        courses: {
+                            $push: {
+                                name: "$course",
+                                groups: "$groups"
+                            }
+                        }
+                    }
+                }
+            ]).exec();
+
+            res.json({ facultets: facultets });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ message: 'Ошибка сервера' });
         }
     }
 
-    async getFacultet(req, res) {
-
-        console.log(req.query.id)
-
+    async getFacultet(req: Request, res: Response) {
         try {
-            const facultet = await Facultets.findOne({_id : req.query.id})
-                .populate({
-                    path: 'courses',
-                    populate: {
-                        path: 'groups',
-                        model: 'Groups'
+            const { id } = req.query;
+
+            if (!id) {
+                return res.status(400).json({ message: 'Не указан идентификатор факультета' });
+            }
+
+            const facultet = await Facultets.aggregate([
+                {
+                    $match: { _id: new ObjectId(id.toString()) }
+                },
+                {
+                    $lookup: {
+                        from: "groups",
+                        localField: "_id",
+                        foreignField: "facultet",
+                        as: "groups"
                     }
-                })
-                .populate('audithories')
-                .exec();
-            res.json({ facultet: [facultet] });
-        } catch (e) {
-            console.log(e);
-            res.status(500).json({ error: 'Ошибка при получении факультетов' });
+                },
+                {
+                    $unwind: "$groups"
+                },
+                {
+                    $group: {
+                        _id: "$_id",
+                        name: { $first: "$name" },
+                        courses: {
+                            $push: {
+                                name: "$groups.course",
+                                groups: { _id: "$groups._id", name: "$groups.name" }
+                            }
+                        }
+                    }
+                }
+            ]).exec();
+
+            return res.json({ facultets: facultet });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ message: 'Ошибка сервера' });
         }
     }
 }

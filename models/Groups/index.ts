@@ -1,4 +1,4 @@
-import { model } from "mongoose";
+import { Schema, model } from "mongoose";
 import mongoose from "mongoose";
 
 const GroupsSchema = new mongoose.Schema({
@@ -6,6 +6,13 @@ const GroupsSchema = new mongoose.Schema({
         type: String,
         required: true,
         unique: true
+    },
+    course: {
+        type: String
+    },
+    facultet: {
+        type: Schema.Types.ObjectId,
+        ref: 'facultets'
     }
 })
 
