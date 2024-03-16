@@ -4,7 +4,6 @@ import { roleMiddleware } from "../../middlewares/roleMiddleware";
 const express = require('express');
 const authRouter = express.Router();
 const controller = new authController();
-const authMiddleware = require('../../middlewares/authMiddleware')
 
 
 authRouter.post('/registration', registrationValidationRules, controller.registration);
