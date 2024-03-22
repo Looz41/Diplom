@@ -9,7 +9,7 @@ const DisciplineSchema = new mongoose.Schema({
         required: true,
         unique: true
     },
-    facultet: {
+    group: {
         type: String,
         required: true,
     },
@@ -21,22 +21,6 @@ const DisciplineSchema = new mongoose.Schema({
         },
         required: true
     }
-    // lections: {
-    //     type: String,
-    //     required: true,
-    // },
-    // practice: {
-    //     type: String,
-    //     required: true,
-    // },
-    // lab: {
-    //     type: String,
-    //     required: true,
-    // },
-    // independent: {
-    //     type: String,
-    //     required: true,
-    // },
 })
 
 module.exports = model("disciplines", DisciplineSchema)

@@ -1,10 +1,10 @@
-import { disciplineController } from "../../../Controllers/disciplineController"
+import { teachersController } from "../../../Controllers/teacherController";
 import { roleMiddleware } from "../../../middlewares/roleMiddleware";
 
 const express = require('express');
-const disciplineRouter = express.Router();
-const controller = new teacherController();
+const teacherRouter = express.Router();
+const controller = new teachersController();
 
-disciplineRouter.get('/getByName', roleMiddleware(["ADMIN"]), controller.getDisciplineByName);
+teacherRouter.post('/add', controller.addTeacher);
 
-export { disciplineRouter };
+export { teacherRouter };

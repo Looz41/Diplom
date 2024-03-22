@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import { authRouter } from './Routes/authRouter';
 import { disciplineRouter } from './Routes/sheduleHelping/disciplineRouter';
 import { facultetRouter } from './Routes/facultetRouter';
+import { teacherRouter } from './Routes/sheduleHelping/teachersRouter'; 
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -20,6 +21,7 @@ app.use((req, res, next) => {
 app.use('/auth', authRouter);
 app.use('/discipline', disciplineRouter);
 app.use('/facultet', facultetRouter);
+app.use('/teacher', teacherRouter);
 
 const start = async () => {
     try {
