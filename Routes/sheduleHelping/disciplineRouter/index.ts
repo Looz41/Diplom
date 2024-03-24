@@ -6,11 +6,8 @@ const express = require('express');
 const disciplineRouter = express.Router();
 const controller = new disciplineController();
 
-
-disciplineRouter.get('/get', controller.getDiscipline);
-disciplineRouter.get('/getByName', controller.getDisciplineByName);
-disciplineRouter.get('/getByGroup', controller.getDisciplineByGroup);
-disciplineRouter.post("/add", roleMiddleware(["ADMIN"]), controller.addDiscipline);
+disciplineRouter.post("/add", controller.addDiscipline);
+disciplineRouter.get("/get", controller.getDiscipline);
 
 
 export { disciplineRouter };
