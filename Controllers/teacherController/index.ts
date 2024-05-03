@@ -71,6 +71,18 @@ class teachersController {
             res.status(500).json({ message: 'Ошибка сервера' });
         }
     }
+
+    async getTeacher(req: Request, res: Response) {
+        try {
+            const teachers = await Teachers.find()
+                .exec();
+
+            res.json({ teachers: teachers });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ message: 'Ошибка сервера' });
+        }
+    }
 }
 
 export { teachersController };

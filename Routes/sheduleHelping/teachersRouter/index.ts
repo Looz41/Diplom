@@ -6,6 +6,7 @@ const teacherRouter = express.Router();
 const controller = new teachersController();
 
 teacherRouter.post('/add', controller.addTeacher);
+teacherRouter.get('/get', controller.getTeacher);
 teacherRouter.get('/getTeacherByDiscipline', controller.getTeacherByDiscipline);
 
 export { teacherRouter };
