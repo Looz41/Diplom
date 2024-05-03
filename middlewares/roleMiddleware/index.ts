@@ -1,3 +1,4 @@
+import { NextFunction, Request, Response } from "express";
 import { SecretKey } from "../../config";
 const jwt = require('jsonwebtoken')
 
@@ -7,7 +8,7 @@ const jwt = require('jsonwebtoken')
  * @returns Права доступа
  */
 export const roleMiddleware = (roles: Array<string>) => {
-    return function (req, res, next) {
+    return function (req: Request, res: Response, next: NextFunction) {
         if (req.method === "OPTIONS") {
             next()
         }
@@ -26,7 +27,7 @@ export const roleMiddleware = (roles: Array<string>) => {
                 }
             });
             if (!hasRole) {
-                return res.status(403).json({message: "У вас нет доступа"})
+                return res.status(403).json({ message: "У вас нет доступа" })
             }
             next()
         } catch (e) {
