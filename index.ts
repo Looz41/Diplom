@@ -25,7 +25,7 @@ app.use('/teacher', teacherRouter);
 
 const start = async () => {
     try {
-        await mongoose.connect('mongodb://127.0.0.1:27017/Schedule');
+        await mongoose.connect('mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.2.5');
         app.listen(PORT, () => console.log(`Running on port ${PORT}`));
     } catch (e) {
         console.warn(e);
