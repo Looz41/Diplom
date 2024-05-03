@@ -62,7 +62,7 @@ class facultetController {
 
 
 
-    async getFacultets(req, res) {
+    async getFacultets(req: Request, res: Response) {
         try {
             const facultets = await Facultets.aggregate([
                 {

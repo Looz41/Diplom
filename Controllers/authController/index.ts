@@ -1,3 +1,4 @@
+import { Request, Response } from "express"
 import { SecretKey } from "../../config"
 
 const User = require('../../models/User/user')
@@ -9,7 +10,7 @@ const { validationResult } = require('express-validator')
 
 const { body } = require('express-validator');
 
-const generateAccesstoken = (id:string, roles:Array<string>) => {
+const generateAccesstoken = (id: string, roles: Array<string>) => {
     const payload = {
         id,
         roles
@@ -24,7 +25,7 @@ class authController {
      * @param res - ответ
      * @returns res
      */
-    async registration(req, res) {
+    async registration(req: Request, res: Response) {
         try {
             const errors = validationResult(req)
             if (!errors.isEmpty()) {
@@ -46,7 +47,7 @@ class authController {
         }
     }
 
-    async login(req, res) {
+    async login(req: Request, res: Response) {
         try {
             const { username, password } = req.body
             const user = await User.findOne({ username })
@@ -65,7 +66,7 @@ class authController {
         }
     }
 
-    async getUsers(req, res) {
+    async getUsers(req: Request, res: Response) {
         try {
             const users = await User.find()
             res.json(users)
