@@ -116,21 +116,21 @@ class authController {
     }
 
     /**
-    * Получение списка пользователей
-    * @swagger
-    * tags:
-    *      name: auth
-    * /auth/users:
-    *   get:
-    *     summary: Получение списка пользователей
-    *     tags: [auth]
-    *    security:
-    *    - bearerAuth: []
-    *     description: Получение списка пользователей
-    *     responses:
-    *       200:
-    *         description: Список пользователей
-    */
+ * Получение списка пользователей
+ * @swagger
+ * tags:
+ *      name: auth
+ * /auth/users:
+ *   get:
+ *     summary: Получение списка пользователей
+ *     tags: [auth]
+ *     security:
+ *       - bearerAuth: []
+ *     description: Получение списка пользователей
+ *     responses:
+ *       200:
+ *         description: Список пользователей
+ */
     async getUsers(req: Request, res: Response) {
         try {
             const users = await User.find()
