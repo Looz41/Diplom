@@ -182,15 +182,18 @@ class authController {
                 return res.status(401).json({ message: 'Отсутствует токен авторизации' });
             }
 
-            jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
-                if (err) {
-                    return res.status(401).json({ message: 'Неверный токен авторизации' });
-                }
+            const decodedToken: any = jwt.verify(token, process.env.JWT_SECRET);
+            const userId = decodedToken._id;
+            const user = await User.findById(userId);
 
-                const userRoles = decodedToken.roles;
+            if (!user) {
+                return res.status(404).json({ message: 'Пользователь не найден' });
+            }
 
-                return res.json({status: "Ok", role:userRoles})
-            });
+            const userRole = user.roles[0];
+
+            return res.json({ status: "Ok", role: userRole });
+
         } catch (error) {
             return res.status(403).json({ message: 'Недействительный токен' });
         }
