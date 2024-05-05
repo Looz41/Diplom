@@ -69,14 +69,29 @@ class disciplineController {
         }
     }
 
+    /**
+    * Получение списка дисциплин
+    * @swagger
+    * tags:
+    *      name: disciplines
+    * /discipline/get:
+    *   get:
+    *     summary: Получение списка дисциплин
+    *     tags: [disciplines]
+    *     description: Получение списка дициплин
+    *     responses:
+    *       200:
+    *         description: Список дисциплин
+    */
     async getDiscipline(req: Request, res: Response) {
         try {
             const disciplines = await Disciplines.find()
-                .populate('groups')
-                .populate('teachers')
+                .select('name')
                 .exec();
 
-            res.json({ disciplines: disciplines });
+            const disciplineNames = disciplines.map(discipline => discipline.name);
+
+            res.json({ disciplines: disciplineNames });
         } catch (error) {
             console.error(error);
             res.status(500).json({ message: 'Ошибка сервера' });
