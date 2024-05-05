@@ -21,13 +21,13 @@ class facultetController {
                 return;
             }
 
-            const invalidGroups = groups.filter(groupName => !groupName.includes('-К'));
+            const invalidGroups = groups.filter((groupName: string) => !groupName.includes('-К'));
             if (invalidGroups.length > 0) {
                 res.status(400).json({ result: false, message: `Некорректные названия групп: ${invalidGroups.join(', ')}. Название группы должно содержать "-К"` });
                 return;
             }
 
-            const existingGroups = await Promise.all(groups.map(async (groupName) => {
+            const existingGroups = await Promise.all(groups.map(async (groupName: string) => {
                 return await Groups.findOne({ name: groupName });
             }));
 
