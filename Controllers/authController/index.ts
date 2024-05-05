@@ -182,15 +182,9 @@ class authController {
                 return res.status(401).json({ message: 'Отсутствует токен авторизации' });
             }
 
-            const decodedToken: any = jwt.verify(token, process.env.JWT_SECRET);
-            const userId = decodedToken._id;
-            const user = await User.findById(userId);
+            const { roles: userRoles } = jwt.verify(token, SecretKey.secret) as { roles: string[] };
 
-            if (!user) {
-                return res.status(404).json({ message: 'Пользователь не найден' });
-            }
-
-            const userRole = user.roles[0];
+            const userRole = userRoles[0];
 
             return res.json({ status: "Ok", role: userRole });
 
