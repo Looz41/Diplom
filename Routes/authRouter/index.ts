@@ -10,5 +10,6 @@ authRouter.post('/registration', registrationValidationRules, controller.registr
 authRouter.post('/login', controller.login);
 authRouter.get('/users', roleMiddleware(['ADMIN']), controller.getUsers);
 authRouter.get('/addRole', controller.addRole);
+authRouter.get('/check', controller.checkToken);
 
 export { authRouter };

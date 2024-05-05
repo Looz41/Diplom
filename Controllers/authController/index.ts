@@ -61,10 +61,10 @@ class authController {
             }
             const user = new User({ username, password: hashPassword, roles: [userRole.value] })
             await user.save()
-            return res.json({ message: 'Пользователь был успешно зарегестрирован' })
+            return res.status(200).json({ message: 'Пользователь был успешно зарегистрирован' })
         } catch (e) {
             console.log(e)
-            res.status(400).json({ message: 'Registration error' })
+            return res.status(400).json({ message: 'Ошибка при регистрации' })
         }
     }
 
