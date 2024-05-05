@@ -42,6 +42,11 @@ class authController {
     *             required:
     *               - username
     *               - password
+   *     responses:
+   *       200:
+   *         description: Успешная авторизация, возврат токена
+   *       400:
+   *         description: Ошибка при авторизации
     */
     async registration(req: Request, res: Response) {
         try {
