@@ -86,12 +86,15 @@ class disciplineController {
     async getDiscipline(req: Request, res: Response) {
         try {
             const disciplines = await Disciplines.find()
-                .select('name')
+                .select('_id name')
                 .exec();
 
-            const disciplineNames = disciplines.map(discipline => discipline.name);
+            const formattedDisciplines = disciplines.map(discipline => ({
+                id: discipline._id,
+                name: discipline.name
+            }));
 
-            res.json({ disciplines: disciplineNames });
+            res.json({ disciplines: formattedDisciplines });
         } catch (error) {
             console.error(error);
             res.status(500).json({ message: 'Ошибка сервера' });
