@@ -10,6 +10,6 @@ authRouter.post('/registration', controller.registration);
 authRouter.post('/login', controller.login);
 authRouter.get('/users', roleMiddleware(['ADMIN']), controller.getUsers);
 authRouter.get('/addRole', controller.addRole);
-authRouter.get('/check', controller.checkToken);
+authRouter.get('/check', roleMiddleware(['ADMIN', "USER"]), controller.checkToken);
 
 export { authRouter };
