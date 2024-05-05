@@ -19,12 +19,30 @@ const generateAccesstoken = (id: string, roles: Array<string>) => {
 }
 
 class authController {
+
     /**
-     * Функция регистрации Нового Пользователя
-     * @param req - запрос
-     * @param res - ответ
-     * @returns res
-     */
+    * Регистрация нового пользователя
+    * @swagger
+    * /auth/registration:
+    *   post:
+    *     summary: Регистрация нового пользователя
+    *     tags: [auth]
+    *     description: Регистрация нового пользователя
+    *     requestBody:
+    *       required: true
+    *       content:
+    *         application/json:
+    *           schema:
+    *             type: object
+    *             properties:
+    *               username:
+    *                 type: string
+    *               password:
+    *                 type: string
+    *             required:
+    *               - username
+    *               - password
+    */
     async registration(req: Request, res: Response) {
         try {
             const errors = validationResult(req)
@@ -47,6 +65,34 @@ class authController {
         }
     }
 
+    /**
+   * Авторизация пользователя
+   * @swagger
+   * /auth/login:
+   *   post:
+   *     summary: Авторизация пользователя
+   *     tags: [auth]
+   *     description: Авторизация пользователя
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               username:
+   *                 type: string
+   *               password:
+   *                 type: string
+   *             required:
+   *               - username
+   *               - password
+   *     responses:
+   *       200:
+   *         description: Успешная авторизация, возврат токена
+   *       400:
+   *         description: Ошибка при авторизации
+   */
     async login(req: Request, res: Response) {
         try {
             const { username, password } = req.body
@@ -66,12 +112,37 @@ class authController {
         }
     }
 
+    /**
+    * Получение списка пользователей
+    * @swagger
+    * tags:
+    *      name: auth
+    * /auth/users:
+    *   get:
+    *     summary: Получение списка пользователей
+    *     tags: [auth]
+    *     description: Получение списка пользователей
+    *     responses:
+    *       200:
+    *         description: Список пользователей
+    */
     async getUsers(req: Request, res: Response) {
         try {
             const users = await User.find()
             res.json(users)
         } catch (e) {
 
+        }
+    }
+
+    async addRole(req: Request, res: Response) {
+        try {
+            const userRole = new Role();
+            const adminRole = new Role({ value: "ADMIN" });
+            await userRole.save();
+            await adminRole.save();
+        } catch (e) {
+            console.log(e);
         }
     }
 }

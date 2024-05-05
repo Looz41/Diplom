@@ -3,7 +3,10 @@ import mongoose from 'mongoose';
 import { authRouter } from './Routes/authRouter';
 import { disciplineRouter } from './Routes/sheduleHelping/disciplineRouter';
 import { facultetRouter } from './Routes/facultetRouter';
-import { teacherRouter } from './Routes/sheduleHelping/teachersRouter'; 
+import { teacherRouter } from './Routes/sheduleHelping/teachersRouter';
+import swaggerJsdoc from 'swagger-jsdoc';
+import swaggerUi from 'swagger-ui-express';
+import path from 'path';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -22,6 +25,39 @@ app.use('/auth', authRouter);
 app.use('/discipline', disciplineRouter);
 app.use('/facultet', facultetRouter);
 app.use('/teacher', teacherRouter);
+
+const options = {
+    definition: {
+        openapi: '3.0.0',
+        info: {
+            title: 'Расписание',
+            version: '1.0.0',
+            description: 'Документация api генерации расписания',
+            contact: {
+                name: 'Клиент',
+                url: 'http://79.174.83.183:3000'
+            },
+        },
+        servers: [
+            {
+                url: 'http://localhost:5000',
+                description: 'local',
+            },
+            {
+                url: 'http://79.174.83.183:5000',
+                description: 'Development server',
+            },
+        ],
+    },
+    apis: [path.resolve(__dirname, './Controllers/**/*.ts')],
+};
+
+const specs = swaggerJsdoc(options);
+app.use(
+    '/api-docs',
+    swaggerUi.serve,
+    swaggerUi.setup(specs)
+);
 
 const start = async () => {
     try {
