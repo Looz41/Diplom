@@ -41,6 +41,43 @@ class teachersController {
         }
     }
 
+/**
+ * Получение преподавателей по дисциплине
+ * @swagger
+ * /teacher/getTeacherByDiscipline:
+ *   get:
+ *     summary: Получение преподавателей по дисциплине
+ *     tags: [teachers]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Идентификатор дисциплины
+ *     responses:
+ *       '200':
+ *         description: Успешный запрос. Возвращены преподаватели с учебной нагрузкой и без неё.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 teachers:
+ *                   type: array
+ *                   description: Преподаватели с учебной нагрузкой (HH > 0), отсортированные по убыванию aH/hH.
+ *                 teachersFree:
+ *                   type: array
+ *                   description: Преподаватели без учебной нагрузки (HH = 0 или не определено).
+ *       '400':
+ *         description: Неверный запрос. Отсутствует идентификатор дисциплины.
+ *       '404':
+ *         description: Дисциплина с указанным идентификатором не найдена.
+ *       '500':
+ *         description: Ошибка сервера.
+ */
     async getTeacherByDiscipline(req: Request, res: Response) {
         try {
             if (!req.query || !req.query.id) {
