@@ -186,11 +186,11 @@ class authController {
 
             userRoles.forEach((role: string) => {
                 if (["ADMIN"].includes(role)) {
-                    return res.json({ status: "Ok", role: "ADMIN" })
+                    return res.json({ user: { status: "Ok", role: "ADMIN" } })
                 } else if (["USER"].includes(role)) {
-                    return res.json({ status: "Ok", role: "USER" })
+                    return res.json({ user: { status: "Ok", role: "USER" } })
                 } else {
-                    return res.json({ status: "Ok", role: "null" })
+                    return res.json({ user: { status: "Ok", role: "null" } })
                 }
             });
 
