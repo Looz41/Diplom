@@ -1,4 +1,4 @@
-import { Request, Response } from "express"
+import { NextFunction, Request, Response } from "express"
 import { SecretKey } from "../../config"
 
 const User = require('../../models/User/user')
@@ -124,6 +124,8 @@ class authController {
     *   get:
     *     summary: Получение списка пользователей
     *     tags: [auth]
+    *    security:
+    *    - bearerAuth: []
     *     description: Получение списка пользователей
     *     responses:
     *       200:
@@ -134,7 +136,7 @@ class authController {
             const users = await User.find()
             res.json(users)
         } catch (e) {
-
+            res.status(400).json({ error: 'Ошибка' })
         }
     }
 
@@ -147,6 +149,30 @@ class authController {
             res.json('Ok')
         } catch (e) {
             console.log(e);
+        }
+    }
+
+    /**
+    * Проверка авторизации пользователя
+    * @swagger
+    * tags:
+    *      name: auth
+    * /auth/check:
+    *   get:
+    *     summary: Проверка авторизации пользователя
+    *     tags: [auth]
+    *     security:
+    *       - bearerAuth: []
+    *     description: Проверка авторизации пользователя
+    *     responses:
+    *       200:
+    *         description: Список пользователей
+    */
+    async checkToken(req: Request, res: Response) {
+        try {
+            res.json({ status: "Ok" })
+        } catch (error) {
+            return res.status(403).json({ message: 'Недействительный токен' });
         }
     }
 }
