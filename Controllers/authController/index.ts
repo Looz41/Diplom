@@ -67,7 +67,7 @@ class authController {
             const user = new User({ username, password: hashPassword, roles: [userRole.value] })
             await user.save()
             const token = generateAccesstoken(user._id, user.roles)
-            return res.json({ token })
+            return res.json({ user: { token, role: "ADMIN" } })
         } catch (e) {
             console.log(e)
             return res.status(400).json({ message: 'Ошибка при регистрации' })
@@ -113,8 +113,17 @@ class authController {
             if (!validPassword) {
                 return res.status(400).json({ message: `Введен не верный пароль` })
             }
-            const token = generateAccesstoken(user._id, user.roles)
-            return res.json({ token })
+            const token = generateAccesstoken(user._id, user.roles);
+            const { roles: userRoles } = jwt.verify(token, SecretKey.secret) as { roles: string[] }; // Указываем тип для roles
+            userRoles.forEach((role: string) => {
+                if (["ADMIN"].includes(role)) {
+                    return res.json({ user: { token, role: "ADMIN" } })
+                } else if (["USER"].includes(role)) {
+                    return res.json({ user: { token, role: "USER" } })
+                } else {
+                    return res.json({ user: { token, role: "null" } })
+                }
+            });
         } catch (e) {
             console.log(e)
             res.status(400).json({ message: 'Login error' })
