@@ -166,7 +166,7 @@ class disciplineController {
   *       500:
   *         description: Ошибка сервера. Возникает в случае проблем на стороне сервера.
   */
-    async getDiscipline(req, res) {
+    async getDiscipline(req: Request, res: Response) {
         try {
             const disciplines = await Disciplines.find()
                 .select('_id name')
