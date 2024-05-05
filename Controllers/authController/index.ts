@@ -44,9 +44,9 @@ class authController {
     *               - password
    *     responses:
    *       200:
-   *         description: Успешная авторизация, возврат токена
+   *         description: Успешная регистрация, возврат токена
    *       400:
-   *         description: Ошибка при авторизации
+   *         description: Ошибка при регистрации
     */
     async registration(req: Request, res: Response) {
         try {
@@ -66,7 +66,8 @@ class authController {
             }
             const user = new User({ username, password: hashPassword, roles: [userRole.value] })
             await user.save()
-            return res.status(200).json({ message: 'Пользователь был успешно зарегистрирован' })
+            const token = generateAccesstoken(user._id, user.roles)
+            return res.json({ token })
         } catch (e) {
             console.log(e)
             return res.status(400).json({ message: 'Ошибка при регистрации' })
