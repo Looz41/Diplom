@@ -184,9 +184,15 @@ class authController {
 
             const { roles: userRoles } = jwt.verify(token, SecretKey.secret) as { roles: string[] };
 
-            const userRole = userRoles[0];
-
-            return res.json({ status: "Ok", role: userRole });
+            userRoles.forEach((role: string) => {
+                if (["ADMIN"].includes(role)) {
+                    return res.json({ status: "Ok", role: "ADMIN" })
+                } else if (["USER"].includes(role)) {
+                    return res.json({ status: "Ok", role: "USER" })
+                } else {
+                    return res.json({ status: "Ok", role: "null" })
+                }
+            });
 
         } catch (error) {
             return res.status(403).json({ message: 'Недействительный токен' });
