@@ -11,13 +11,78 @@ interface MongooseValidationError {
 }
 
 class disciplineController {
-    /**
-     * Функция добавления новой дисциплины
-     * @param req - запрос
-     * @param res - ответ
-     * @returns res
-     */
 
+    /**
+     * Добавление дисциплины
+     * @swagger
+     * /discipline/add:
+     *   post:
+     *     summary: Добавление дисциплины
+     *     tags:
+     *       - disciplines
+     *     security:
+     *       - bearerAuth: []
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               name:
+     *                 type: string
+     *                 description: Название дисциплины.
+     *               groups:
+     *                 type: array
+     *                 items:
+     *                   type: string
+     *                 description: Список названий групп, к которым относится дисциплина.
+     *               teachers:
+     *                 type: array
+     *                 items:
+     *                   type: string
+     *                 description: Список фамилий преподавателей, преподающих дисциплину.
+     *               aH:
+     *                 type: number
+     *                 description: Количество академических часов.
+     *     responses:
+     *       200:
+     *         description: Успешное добавление дисциплины.
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 message:
+     *                   type: string
+     *                   description: Сообщение об успешном добавлении дисциплины.
+     *       400:
+     *         description: Ошибка запроса. Возникает в случае неверных данных в запросе.
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 message:
+     *                   type: string
+     *                   description: Сообщение об ошибке добавления дисциплины.
+     *                 errors:
+     *                   type: array
+     *                   items:
+     *                     type: object
+     *                     properties:
+     *                       param:
+     *                         type: string
+     *                         description: Имя параметра, содержащего ошибку.
+     *                       msg:
+     *                         type: string
+     *                         description: Сообщение об ошибке.
+     *                       value:
+     *                         type: any
+     *                         description: Значение параметра, содержащего ошибку.
+     *       500:
+     *         description: Ошибка сервера. Возникает в случае проблем на стороне сервера.
+     */
     async addDiscipline(req: Request, res: Response) {
         try {
             const errors = validationResult(req);
@@ -70,20 +135,38 @@ class disciplineController {
     }
 
     /**
-    * Получение списка дисциплин
-    * @swagger
-    * tags:
-    *      name: disciplines
-    * /discipline/get:
-    *   get:
-    *     summary: Получение списка дисциплин
-    *     tags: [disciplines]
-    *     description: Получение списка дициплин
-    *     responses:
-    *       200:
-    *         description: Список дисциплин
-    */
-    async getDiscipline(req: Request, res: Response) {
+  * Получение списка дисциплин
+  * @swagger
+  * /discipline/get:
+  *   get:
+  *     summary: Получение списка дисциплин
+  *     tags:
+  *       - disciplines
+  *     security:
+  *       - bearerAuth: []
+  *     responses:
+  *       200:
+  *         description: Успешный запрос. Возвращает список дисциплин.
+  *         content:
+  *           application/json:
+  *             schema:
+  *               type: object
+  *               properties:
+  *                 disciplines:
+  *                   type: array
+  *                   items:
+  *                     type: object
+  *                     properties:
+  *                       id:
+  *                         type: string
+  *                         description: Уникальный идентификатор дисциплины.
+  *                       name:
+  *                         type: string
+  *                         description: Название дисциплины.
+  *       500:
+  *         description: Ошибка сервера. Возникает в случае проблем на стороне сервера.
+  */
+    async getDiscipline(req, res) {
         try {
             const disciplines = await Disciplines.find()
                 .select('_id name')

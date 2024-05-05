@@ -38,6 +38,15 @@ const options = {
                 url: 'http://79.174.83.183:3000'
             },
         },
+        components: {
+            securitySchemes: {
+                bearerAuth: {
+                    type: 'http',
+                    scheme: 'bearer',
+                    bearerFormat: 'JWT'
+                }
+            },
+        },
         servers: [
             {
                 url: 'http://localhost:5000',
