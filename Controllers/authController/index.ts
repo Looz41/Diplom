@@ -176,7 +176,21 @@ class authController {
     */
     async checkToken(req: Request, res: Response) {
         try {
-            res.json({ status: "Ok" })
+            const token = req.headers.authorization;
+
+            if (!token) {
+                return res.status(401).json({ message: 'Отсутствует токен авторизации' });
+            }
+
+            jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
+                if (err) {
+                    return res.status(401).json({ message: 'Неверный токен авторизации' });
+                }
+
+                const userRoles = decodedToken.roles;
+
+                return res.json({status: "Ok", role:userRoles})
+            });
         } catch (error) {
             return res.status(403).json({ message: 'Недействительный токен' });
         }
