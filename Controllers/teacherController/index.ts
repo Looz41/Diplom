@@ -102,7 +102,7 @@ class teachersController {
             // Сортируем преподавателей с hH по убыванию aH/hH
             teachersWithHH.sort((a: any, b: any) => (b.aH / b.hH) - (a.aH / a.hH));
 
-            res.json({ teachers: { ...teachersWithHH, ...teachersWithoutHH } });
+            res.json({ teachers: [...teachersWithHH, ...teachersWithoutHH] });
         } catch (error) {
             console.error(error);
             res.status(500).json({ message: 'Ошибка сервера' });
