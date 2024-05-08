@@ -196,12 +196,7 @@ class teachersController {
             }
 
             const teachersWithDisciplines = await Promise.all(teachers.map(async (teacher) => {
-                const disciplines = await Disciplines.find({ teachers: teacher._id }).exec();
-
-                const disciplinesInfo = disciplines.map(discipline => ({
-                    id: discipline._id,
-                    name: discipline.name
-                }));
+                const disciplines = await Disciplines.find({ teachers: teacher._id }).select('_id name').exec();
 
                 return {
                     id: teacher._id,
@@ -210,7 +205,7 @@ class teachersController {
                     patronymic: teacher.patronymic,
                     aH: teacher.aH,
                     hH: teacher.hH,
-                    disciplines: disciplinesInfo
+                    disciplines: disciplines
                 };
             }));
 
