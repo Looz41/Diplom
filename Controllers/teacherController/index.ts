@@ -99,7 +99,6 @@ class teachersController {
             const teachersWithHH = teachers.filter((teacher: any) => teacher.hH !== undefined && teacher.hH !== 0);
             const teachersWithoutHH = teachers.filter((teacher: any) => teacher.hH === undefined || teacher.hH === 0);
 
-            // Сортируем преподавателей с hH по убыванию aH/hH
             teachersWithHH.sort((a: any, b: any) => (b.aH / b.hH) - (a.aH / a.hH));
 
             res.json({ teachers: [...teachersWithHH, ...teachersWithoutHH] });
@@ -109,12 +108,108 @@ class teachersController {
         }
     }
 
+    /**
+     * Получение информации о учителе(ях) с их дисциплинами
+     * @swagger
+     * /teacher/get:
+     *   get:
+     *     summary: Получение информации о учителе(ях) с их дисциплинами
+     *     tags: [teachers]
+     *     security:
+     *       - bearerAuth: []
+     *     parameters:
+     *       - in: query
+     *         name: id
+     *         schema:
+     *           type: string
+     *         description: Идентификатор учителя (необязательный). Если не указан, будут возвращены все учителя.
+     *     responses:
+     *       '200':
+     *         description: Успешный запрос. Возвращена информация о учителе(ях) с их дисциплинами.
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 teachers:
+     *                   type: array
+     *                   description: Список учителей с их дисциплинами.
+     *                   items:
+     *                     type: object
+     *                     properties:
+     *                       id:
+     *                         type: string
+     *                         description: Идентификатор учителя.
+     *                       name:
+     *                         type: string
+     *                         description: Имя учителя.
+     *                       surname:
+     *                         type: string
+     *                         description: Фамилия учителя.
+     *                       patronymic:
+     *                         type: string
+     *                         description: Отчество учителя.
+     *                       aH:
+     *                         type: number
+     *                         description: aH учителя.
+     *                       hH:
+     *                         type: number
+     *                         description: hH учителя.
+     *                       disciplines:
+     *                         type: array
+     *                         description: Список дисциплин, преподаваемых учителем.
+     *                         items:
+     *                           type: object
+     *                           properties:
+     *                             _id:
+     *                               type: string
+     *                               description: Идентификатор дисциплины.
+     *                             name:
+     *                               type: string
+     *                               description: Название дисциплины.
+     *       '404':
+     *         description: Учитель с указанным идентификатором не найден.
+     *       '500':
+     *         description: Ошибка сервера.
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 message:
+     *                   type: string
+     *                   description: Сообщение об ошибке сервера.
+     */
     async getTeacher(req: Request, res: Response) {
         try {
-            const teachers = await Teachers.find()
-                .exec();
+            const { id: teacherId } = req.query;
 
-            res.json({ teachers: teachers });
+            let teachers;
+            if (teacherId) {
+                const teacher = await Teachers.findById(teacherId).exec();
+                if (!teacher) {
+                    return res.status(404).json({ message: 'Учитель с указанным идентификатором не найден' });
+                }
+                teachers = [teacher];
+            } else {
+                teachers = await Teachers.find().exec();
+            }
+
+            const teachersWithDisciplines = await Promise.all(teachers.map(async (teacher) => {
+                const disciplines = await Disciplines.find({ teachers: teacher._id }).exec();
+
+                return {
+                    id: teacher._id,
+                    name: teacher.name,
+                    surname: teacher.surname,
+                    patronymic: teacher.patronymic,
+                    aH: teacher.aH,
+                    hH: teacher.hH,
+                    disciplines: disciplines
+                };
+            }));
+
+            res.json({ teachers: teachersWithDisciplines });
         } catch (error) {
             console.error(error);
             res.status(500).json({ message: 'Ошибка сервера' });

@@ -6,7 +6,7 @@ const teacherRouter = express.Router();
 const controller = new teachersController();
 
 teacherRouter.post('/add', roleMiddleware(['ADMIN']), controller.addTeacher);
-teacherRouter.get('/get', controller.getTeacher);
-teacherRouter.get('/getTeacherByDiscipline', controller.getTeacherByDiscipline);
+teacherRouter.get('/get', roleMiddleware(['USER', "ADMIN"]), controller.getTeacher);
+teacherRouter.get('/getTeacherByDiscipline', roleMiddleware(['USER', "ADMIN"]), controller.getTeacherByDiscipline);
 
 export { teacherRouter };

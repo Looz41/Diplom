@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import Disciplines from '../../models/Disciplines/index'
 import Groups from '../../models/Groups/index';
 import Teachers from '../../models/Teachers/index';
+import { ObjectId } from 'mongodb';
 
 const { validationResult } = require('express-validator')
 

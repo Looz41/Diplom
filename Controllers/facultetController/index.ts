@@ -5,6 +5,83 @@ import { ObjectId } from 'mongodb';
 const { validationResult } = require('express-validator');
 
 class facultetController {
+    /**
+ * Добавление факультета
+ * @swagger
+ * /facultet/add:
+ *   post:
+ *     summary: Добавление факультета
+ *     tags: [facultet]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: Название факультета
+ *               groups:
+ *                 type: array
+ *                 description: Список названий групп
+ *                 items:
+ *                   type: string
+ *     responses:
+ *       '200':
+ *         description: Успешное создание факультета
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 result:
+ *                   type: boolean
+ *                   description: Флаг успешного создания
+ *                 message:
+ *                   type: string
+ *                   description: Сообщение об успешном создании
+ *       '400':
+ *         description: Ошибка валидации или некорректные данные
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 result:
+ *                   type: boolean
+ *                   description: Флаг ошибки
+ *                 message:
+ *                   type: string
+ *                   description: Сообщение об ошибке
+ *                 errors:
+ *                   type: array
+ *                   description: Список ошибок валидации
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       param:
+ *                         type: string
+ *                         description: Имя параметра с ошибкой
+ *                       msg:
+ *                         type: string
+ *                         description: Текст ошибки
+ *                       value:
+ *                         type: string
+ *                         description: Некорректное значение параметра
+ *       '500':
+ *         description: Внутренняя ошибка сервера
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Сообщение об ошибке сервера
+ */
     async addFacultet(req: Request, res: Response) {
         try {
             const errors = validationResult(req);
@@ -52,16 +129,74 @@ class facultetController {
                 await newGroup.save();
             }
 
-            res.json({ result: true, message: `Факультет ${name} был успешно создан 😊` });
+            res.json({ result: true, message: `Факультет ${name} был успешно создан` });
         } catch (error) {
             console.error(error);
             res.status(500).json({ message: 'Ошибка сервера' });
         }
     }
 
-
-
-
+    /**
+ * Получение списка факультетов с группами
+ * @swagger
+ * /facultet/get:
+ *   get:
+ *     summary: Получение списка факультетов с группами
+ *     tags: [facultet]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       '200':
+ *         description: Успешный запрос. Возвращены факультеты с группами.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 facultets:
+ *                   type: array
+ *                   description: Список факультетов с группами.
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                         description: Идентификатор факультета.
+ *                       name:
+ *                         type: string
+ *                         description: Название факультета.
+ *                       courses:
+ *                         type: array
+ *                         description: Список курсов и групп факультета.
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             name:
+ *                               type: string
+ *                               description: Название курса.
+ *                             groups:
+ *                               type: array
+ *                               description: Список групп курса.
+ *                               items:
+ *                                 type: object
+ *                                 properties:
+ *                                   _id:
+ *                                     type: string
+ *                                     description: Идентификатор группы.
+ *                                   name:
+ *                                     type: string
+ *                                     description: Название группы.
+ *       '500':
+ *         description: Ошибка сервера.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Сообщение об ошибке сервера.
+ */
     async getFacultets(req: Request, res: Response) {
         try {
             const facultets = await Facultets.aggregate([
@@ -108,6 +243,76 @@ class facultetController {
         }
     }
 
+    /**
+ * Получение информации о факультете с группами по идентификатору
+ * @swagger
+ * /facultet/getOne:
+ *   get:
+ *     summary: Получение информации о факультете с группами по идентификатору
+ *     tags: [facultet]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Идентификатор факультета
+ *     responses:
+ *       '200':
+ *         description: Успешный запрос. Возвращена информация о факультете с его группами.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 facultets:
+ *                   type: array
+ *                   description: Информация о факультете с его группами.
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       _id:
+ *                         type: string
+ *                         description: Идентификатор факультета.
+ *                       name:
+ *                         type: string
+ *                         description: Название факультета.
+ *                       courses:
+ *                         type: array
+ *                         description: Список курсов и групп факультета.
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             name:
+ *                               type: string
+ *                               description: Название курса.
+ *                             groups:
+ *                               type: array
+ *                               description: Список групп курса.
+ *                               items:
+ *                                 type: object
+ *                                 properties:
+ *                                   _id:
+ *                                     type: string
+ *                                     description: Идентификатор группы.
+ *                                   name:
+ *                                     type: string
+ *                                     description: Название группы.
+ *       '400':
+ *         description: Неверный запрос. Отсутствует идентификатор факультета.
+ *       '500':
+ *         description: Ошибка сервера.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Сообщение об ошибке сервера.
+ */
     async getFacultet(req: Request, res: Response) {
         try {
             const { id } = req.query;
