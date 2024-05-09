@@ -4,7 +4,7 @@ import Facultets from "./Facultets";
 import Groups from "./Groups";
 import Teachers from "./Teachers";
 import Types from "./Types";
-
+import Schedule from "./Schedule";
 
 export {
     Audithories,
@@ -13,4 +13,5 @@ export {
     Groups,
     Teachers,
     Types,
+    Schedule,
 }

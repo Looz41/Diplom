@@ -11,6 +11,7 @@ import {
     teacherRouter,
     typesRouter,
     audithoriesRouter,
+    scheduleRouter
 } from './Routes/';
 
 const app = express();
@@ -32,6 +33,7 @@ app.use('/facultet', facultetRouter);
 app.use('/teacher', teacherRouter);
 app.use('/types', typesRouter);
 app.use('/audithories', audithoriesRouter);
+app.use('/schedule', scheduleRouter);
 
 const options = {
     definition: {
