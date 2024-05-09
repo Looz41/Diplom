@@ -143,24 +143,18 @@ class scheduleController {
  */
     async getShedule(req: Request, res: Response) {
         try {
-            let query = {};
+            let query: any = {};
     
-            // Проверяем, есть ли параметр даты в запросе
-            if (req.query.date) {
-                // Если есть, добавляем его в критерии поиска
-                query["date"] = req.query.date;
+            if (typeof req.query.date === 'string') {
+                query.date = req.query.date;
             }
     
-            // Проверяем, есть ли параметр преподавателя в запросе
-            if (req.query.teacher) {
-                // Если есть, добавляем его в критерии поиска
+            if (typeof req.query.teacher === 'string') {
                 query["items.teacher"] = req.query.teacher;
             }
     
-            // Ищем расписание на основе критериев
             const schedule = await Schedule.find(query);
     
-            // Если расписание не найдено, возвращаем соответствующий ответ
             if (!schedule || schedule.length === 0) {
                 return res.status(404).json({ message: "Расписание не найдено" });
             }
