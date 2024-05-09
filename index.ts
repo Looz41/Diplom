@@ -13,7 +13,7 @@ import {
     audithoriesRouter,
     scheduleRouter
 } from './Routes/';
-import logger from 'tglogger';
+import logger from './tglogger';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
