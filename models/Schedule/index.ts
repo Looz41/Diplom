@@ -27,6 +27,10 @@ const ScheduleSchema = new mongoose.Schema({
                 type: mongoose.Schema.Types.ObjectId,
                 ref: 'Audithories',
                 required: true
+            },
+            number: {
+                type: Number,
+                required: true,
             }
         }
     ]

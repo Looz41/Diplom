@@ -70,14 +70,21 @@ class scheduleController {
     async addSchedule(req: Request, res: Response) {
         try {
             const { date, items } = req.body;
-    
+
+            // Check if the teacher is already booked for the given class number on the given date
+            const existingSchedule = await Schedule.findOne({ date, 'items.number': { $in: items.map(item => item.number) }, 'items.teacher': { $in: items.map(item => item.teacher) } });
+
+            if (existingSchedule) {
+                return res.status(400).json({ message: "Учитель уже занят на эту пару в указанную дату" });
+            }
+
             const newSchedule = new Schedule({
                 date,
                 items
             });
-    
+
             await newSchedule.save();
-    
+
             res.status(200).json({ message: "Расписание успешно создано", schedule: newSchedule });
         } catch (error) {
             console.error('Ошибка:', error);
@@ -101,7 +108,7 @@ class scheduleController {
  *         schema:
  *           type: string
  *           format: date
- *         description: Дата для фильтрации расписания.
+ *         description: Дата для фильтрации расписания в формате YYYY-MM-DD.
  *       - in: query
  *         name: teacher
  *         schema:
@@ -144,21 +151,21 @@ class scheduleController {
     async getShedule(req: Request, res: Response) {
         try {
             let query: any = {};
-    
+
             if (typeof req.query.date === 'string') {
                 query.date = req.query.date;
             }
-    
+
             if (typeof req.query.teacher === 'string') {
                 query["items.teacher"] = req.query.teacher;
             }
-    
+
             const schedule = await Schedule.find(query);
-    
+
             if (!schedule || schedule.length === 0) {
                 return res.status(404).json({ message: "Расписание не найдено" });
             }
-    
+
             // Возвращаем найденное расписание
             res.status(200).json({ schedule });
         } catch (error) {
