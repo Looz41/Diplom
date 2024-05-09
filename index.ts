@@ -7,6 +7,7 @@ import { teacherRouter } from './Routes/sheduleHelping/teachersRouter';
 import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import path from 'path';
+import { typesRouter } from './Routes/sheduleHelping/typesRouter';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -25,6 +26,7 @@ app.use('/auth', authRouter);
 app.use('/discipline', disciplineRouter);
 app.use('/facultet', facultetRouter);
 app.use('/teacher', teacherRouter);
+app.use('/types', typesRouter);
 
 const options = {
     definition: {
