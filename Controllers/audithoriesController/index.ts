@@ -1,19 +1,20 @@
 import { Request, Response } from "express"
 
 import Types from '../../models/Types/index';
+import Audithories from "models/Audithories";
 
 const { validationResult } = require('express-validator')
 
-class typesController {
+class audithoriesController {
 
 
     /**
- * Добавление нового типа
+ * Добавление новой аудитории
  * @swagger
- * /types/add:
+ * /audithories/add:
  *   post:
- *     summary: Добавить новый тип
- *     tags: [types]
+ *     summary: Добавить новую аудитории
+ *     tags: [audithories]
  *     security:
  *       - bearerAuth: []
  *     requestBody:
@@ -25,12 +26,12 @@ class typesController {
  *             properties:
  *               name:
  *                 type: string
- *                 description: Имя нового типа.
+ *                 description: Имя новой аудитории.
  *             required:
  *               - name
  *     responses:
  *       '200':
- *         description: Успешное создание типа.
+ *         description: Успешное создание аудитории.
  *         content:
  *           application/json:
  *             schema:
@@ -38,7 +39,7 @@ class typesController {
  *               properties:
  *                 message:
  *                   type: string
- *                   description: Сообщение о успешном создании типа.
+ *                   description: Сообщение о успешном создании аудитории.
  *       '400':
  *         description: Некорректный запрос.
  *         content:
@@ -94,15 +95,15 @@ class typesController {
                 return res.status(400).json({ error: 'Параметр name обязателен' });
             }
 
-            const existingType = await Types.findOne({ name });
-            if (existingType) {
-                return res.status(409).json({ error: `Тип ${name} уже существует` });
+            const existingAudithor = await Audithories.findOne({ name });
+            if (existingAudithor) {
+                return res.status(409).json({ error: `Аудитория ${name} уже существует` });
             }
 
-            const newType = new Types({ name });
-            await newType.save();
+            const newAudit = new Audithories({ name });
+            await newAudit.save();
 
-            res.json({ message: `Тип ${name} успешно создан` });
+            res.json({ message: `Аудитория ${name} успешно создана` });
         } catch (error) {
             console.error('Ошибка:', error);
             res.status(500).json({ message: 'Ошибка сервера' });
@@ -110,18 +111,18 @@ class typesController {
     }
 
     /**
- * Получение всех типов
+ * Получение всех аудиторий
  * @swagger
- * /types/get:
+ * /audithories/get:
  *   get:
  *     summary: Получить все типы
- *     description: Возвращает список всех доступных типов.
- *     tags: [types]
+ *     description: Возвращает список всех доступных аудиторий.
+ *     tags: [audithories]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       '200':
- *         description: Успешное получение списка типов.
+ *         description: Успешное получение списка аудиторий.
  *         content:
  *           application/json:
  *             schema:
@@ -129,13 +130,13 @@ class typesController {
  *               properties:
  *                 types:
  *                   type: array
- *                   description: Список всех доступных типов.
+ *                   description: Список всех доступных аудиторий.
  *                   items:
  *                     type: object
  *                     properties:
  *                       name:
  *                         type: string
- *                         description: Название типа.
+ *                         description: Название аудитории.
  *       '404':
  *         description: Не найдено ни одного типа.
  *         content:
@@ -145,7 +146,7 @@ class typesController {
  *               properties:
  *                 message:
  *                   type: string
- *                   description: Сообщение об отсутствии типов.
+ *                   description: Сообщение об отсутствии аудиторий.
  *       '500':
  *         description: Внутренняя ошибка сервера.
  *         content:
@@ -159,13 +160,13 @@ class typesController {
  */
     async getTypes(req: Request, res: Response) {
         try {
-            const types = await Types.find();
+            const audithories = await Audithories.find();
 
-            if (!types || types.length === 0) {
-                return res.status(404).json({ message: "Нет доступных типов" });
+            if (!audithories || audithories.length === 0) {
+                return res.status(404).json({ message: "Нет доступных аудиторий" });
             }
 
-            res.json({ types: types });
+            res.json({ audithories: audithories });
         } catch (error) {
             console.error('Ошибка:', error);
             res.status(500).json({ message: 'Ошибка сервера' });
@@ -173,4 +174,4 @@ class typesController {
     }
 }
 
-export { typesController };
+export { audithoriesController };
