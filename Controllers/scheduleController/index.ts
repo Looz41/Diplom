@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
 
-import { Disciplines, Schedule } from "../../models/index";
+import { Disciplines, Schedule, Teachers } from "../../models/index";
 
 interface ScheduleItem {
     discipline: string;
@@ -123,8 +123,10 @@ class scheduleController {
             });
 
             if (existingSchedule) {
-                return res.status(400).json({ message: "Учитель или аудитория уже заняты на этот урок в указанную дату" });
+                return res.status(400).json({ message: "Учитель или аудитория уже заняты на эту пару в указанную дату" });
             }
+
+
 
             const newSchedule = new Schedule({
                 date,
@@ -133,6 +135,14 @@ class scheduleController {
             });
 
             await newSchedule.save();
+
+            const teachersIds = items.map((item: ScheduleItem) => item.teacher);
+            const teachers = await Teachers.find({ _id: { $in: teachersIds } });
+
+            for (const teacher of teachers) {
+                teacher.hH += 2;
+                await teacher.save();
+            }
 
             res.status(200).json({ message: "Расписание успешно создано" });
         } catch (error) {
@@ -210,12 +220,12 @@ class scheduleController {
             }
 
             const schedule = await Schedule.find(query)
-            .populate('group', 'name')
-            .populate('items.discipline', 'name')
-            .populate('items.teacher', 'name')
-            .populate('items.audithoria', 'name')
-            .populate('items.type', 'name')
-            .exec();
+                .populate('group', 'name')
+                .populate('items.discipline', 'name')
+                .populate('items.teacher', 'name')
+                .populate('items.audithoria', 'name')
+                .populate('items.type', 'name')
+                .exec();
 
             if (!schedule || schedule.length === 0) {
                 return res.status(404).json({ message: "Расписание не найдено" });
