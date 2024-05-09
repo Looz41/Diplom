@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
 
-import Audithories from "models/Audithories";
+import { Audithories } from "models/";
 
 const { validationResult } = require('express-validator')
 

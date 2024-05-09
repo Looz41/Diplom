@@ -1,7 +1,9 @@
 import { Request, Response } from "express"
 
-import Teachers from '../../models/Teachers/index';
-import Disciplines from '../../models/Disciplines/index'
+import {
+    Teachers,
+    Disciplines
+} from '../../models/';
 
 const { validationResult } = require('express-validator')
 

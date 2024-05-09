@@ -1,7 +1,10 @@
-import Facultets from '../../models/Facultets/index';
-import Groups from '../../models/Groups/index';
 import { Request, Response } from 'express';
 import { ObjectId } from 'mongodb';
+
+import {
+    Facultets,
+    Groups
+} from '../../models/';
 const { validationResult } = require('express-validator');
 
 class facultetController {

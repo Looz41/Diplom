@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
 
-import Types from '../../models/Types/index';
+import {Types} from '../../models/';
 
 const { validationResult } = require('express-validator')
 
