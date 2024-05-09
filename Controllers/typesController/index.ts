@@ -109,7 +109,7 @@ class typesController {
         }
     }
 
-    async getTypes(req, res) {
+    async getTypes(req:Request, res:Response) {
         try {
             const types = await Types.find();
     
