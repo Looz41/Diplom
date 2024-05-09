@@ -13,6 +13,7 @@ import {
     audithoriesRouter,
     scheduleRouter
 } from './Routes/';
+import logger from 'tglogger';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -76,6 +77,20 @@ app.use(
     swaggerUi.serve,
     swaggerUi.setup(specs)
 );
+
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+    logger.error(err.stack);
+    res.status(500).send('Something broke!');
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+process.on('uncaughtException', (err) => {
+    logger.error('Uncaught Exception:', err);
+    process.exit(1);
+});
 
 const start = async () => {
     try {

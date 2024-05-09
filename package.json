@@ -32,6 +32,8 @@
     "nodemon": "^3.0.3",
     "routing-controllers": "^0.10.4",
     "ts-node": "^10.9.2",
+    "winston": "^3.13.0",
+    "winston-telegram": "^2.7.0",
     "yarn": "^1.22.21"
   }
 }
