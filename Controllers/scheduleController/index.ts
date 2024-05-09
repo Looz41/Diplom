@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
 
-import { Schedule } from "../../models/index";
+import { Disciplines, Schedule } from "../../models/index";
 
 interface ScheduleItem {
     discipline: string;
@@ -12,85 +12,100 @@ interface ScheduleItem {
 
 class scheduleController {
 
-    /**
-  * Добавление расписания
-  * @swagger
-  * /schedule/add:
-  *   post:
-  *     summary: Добавить расписание
-  *     description: Создает новое расписание, проверяя доступность учителя, аудитории и указанного урока в указанную дату.
-  *     tags: [schedule]
-  *     security:
-  *       - bearerAuth: []
-  *     requestBody:
-  *       required: true
-  *       content:
-  *         application/json:
-  *           schema:
-  *             type: object
-  *             properties:
-  *               date:
-  *                 type: string
-  *                 format: date
-  *                 description: Дата расписания.
-  *               items:
-  *                 type: array
-  *                 description: Элементы расписания.
-  *                 items:
-  *                   type: object
-  *                   properties:
-  *                     discipline:
-  *                       type: string
-  *                       description: ID дисциплины.
-  *                     teacher:
-  *                       type: string
-  *                       description: ID преподавателя.
-  *                     type:
-  *                       type: string
-  *                       description: ID типа.
-  *                     audithoria:
-  *                       type: string
-  *                       description: ID аудитории.
-  *                     number:
-  *                       type: number
-  *                       description: Номер пары.
-  *     responses:
-  *       '200':
-  *         description: Успешное создание расписания.
-  *         content:
-  *           application/json:
-  *             schema:
-  *               type: object
-  *               properties:
-  *                 message:
-  *                   type: string
-  *                   description: Сообщение о успешном создании расписания.
-  *                 schedule:
-  *                   $ref: '#/components/schemas/Schedule'
-  *       '400':
-  *         description: Учитель или аудитория уже заняты на этот урок в указанную дату.
-  *         content:
-  *           application/json:
-  *             schema:
-  *               type: object
-  *               properties:
-  *                 message:
-  *                   type: string
-  *                   description: Сообщение об ошибке.
-  *       '500':
-  *         description: Внутренняя ошибка сервера.
-  *         content:
-  *           application/json:
-  *             schema:
-  *               type: object
-  *               properties:
-  *                 message:
-  *                   type: string
-  *                   description: Сообщение об ошибке.
-  */
+ /**
+ * Добавление расписания
+ * @swagger
+ * /schedule/add:
+ *   post:
+ *     summary: Добавить расписание
+ *     description: Создает новое расписание.
+ *     tags: [schedule]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               date:
+ *                 type: string
+ *                 format: date
+ *                 description: Дата расписания.
+ *               items:
+ *                 type: array
+ *                 description: Элементы расписания.
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     discipline:
+ *                       type: string
+ *                       description: ID дисциплины.
+ *                     teacher:
+ *                       type: string
+ *                       description: ID преподавателя.
+ *                     type:
+ *                       type: string
+ *                       description: ID типа.
+ *                     audithoria:
+ *                       type: string
+ *                       description: ID аудитории.
+ *                     number:
+ *                       type: integer
+ *                       description: Номер занятия.
+ *     responses:
+ *       '200':
+ *         description: Успешное создание расписания.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Сообщение о успешном создании расписания.
+ *       '400':
+ *         description: Ошибка в запросе.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Сообщение об ошибке в запросе.
+ *       '409':
+ *         description: Конфликт.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Сообщение о конфликте.
+ *       '500':
+ *         description: Внутренняя ошибка сервера.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Сообщение об ошибке сервера.
+ */
     async addSchedule(req: Request, res: Response) {
         try {
             const { date, items } = req.body;
+
+            for (const item of items) {
+                const discipline = await Disciplines.findOne({ _id: item.discipline, teachers: item.teacher });
+                if (!discipline) {
+                    return res.status(400).json({ message: `Учитель с ID ${item.teacher} не ведет дисциплину с ID ${item.discipline}` });
+                }
+            }
 
             const existingSchedule = await Schedule.findOne({
                 date,

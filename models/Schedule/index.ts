@@ -6,6 +6,11 @@ const ScheduleSchema = new mongoose.Schema({
         type: Date,
         required: true
     },
+    group: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Groups',
+        required: true
+    },
     items: [
         {
             discipline: {
