@@ -109,14 +109,62 @@ class typesController {
         }
     }
 
-    async getTypes(req:Request, res:Response) {
+    /**
+ * Получение всех типов
+ * @swagger
+ * /types/get:
+ *   get:
+ *     summary: Получить все типы
+ *     description: Возвращает список всех доступных типов.
+ *     tags: [types]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       '200':
+ *         description: Успешное получение списка типов.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 types:
+ *                   type: array
+ *                   description: Список всех доступных типов.
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       name:
+ *                         type: string
+ *                         description: Название типа.
+ *       '404':
+ *         description: Не найдено ни одного типа.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Сообщение об отсутствии типов.
+ *       '500':
+ *         description: Внутренняя ошибка сервера.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Сообщение об ошибке.
+ */
+    async getTypes(req: Request, res: Response) {
         try {
             const types = await Types.find();
-    
+
             if (!types || types.length === 0) {
                 return res.status(404).json({ message: "Нет доступных типов" });
             }
-    
+
             res.json({ types: types });
         } catch (error) {
             console.error('Ошибка:', error);

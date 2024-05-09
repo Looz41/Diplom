@@ -6,7 +6,7 @@ const typesRouter = express.Router();
 const controller = new typesController();
 
 typesRouter.post('/add', roleMiddleware(['ADMIN']), controller.addType);
-// typesRouter.get('/get', roleMiddleware(['USER', "ADMIN"]), controller.getTeacher);
+typesRouter.get('/get', roleMiddleware(['USER', "ADMIN"]), controller.getTypes);
 
 
 export { typesRouter };
