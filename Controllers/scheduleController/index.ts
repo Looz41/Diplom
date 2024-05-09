@@ -12,90 +12,94 @@ interface ScheduleItem {
 
 class scheduleController {
 
- /**
- * Добавление расписания
- * @swagger
- * /schedule/add:
- *   post:
- *     summary: Добавить расписание
- *     description: Создает новое расписание.
- *     tags: [schedule]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               date:
- *                 type: string
- *                 format: date
- *                 description: Дата расписания.
- *               items:
- *                 type: array
- *                 description: Элементы расписания.
- *                 items:
- *                   type: object
- *                   properties:
- *                     discipline:
- *                       type: string
- *                       description: ID дисциплины.
- *                     teacher:
- *                       type: string
- *                       description: ID преподавателя.
- *                     type:
- *                       type: string
- *                       description: ID типа.
- *                     audithoria:
- *                       type: string
- *                       description: ID аудитории.
- *                     number:
- *                       type: integer
- *                       description: Номер занятия.
- *     responses:
- *       '200':
- *         description: Успешное создание расписания.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   description: Сообщение о успешном создании расписания.
- *       '400':
- *         description: Ошибка в запросе.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   description: Сообщение об ошибке в запросе.
- *       '409':
- *         description: Конфликт.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   description: Сообщение о конфликте.
- *       '500':
- *         description: Внутренняя ошибка сервера.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   description: Сообщение об ошибке сервера.
- */
+    /**
+    * Добавление расписания
+    * @swagger
+    * /schedule/add:
+    *   post:
+    *     summary: Добавить расписание
+    *     description: Создает новое расписание.
+    *     tags: [schedule]
+    *     security:
+    *       - bearerAuth: []
+    *     requestBody:
+    *       required: true
+    *       content:
+    *         application/json:
+    *           schema:
+    *             type: object
+    *             properties:
+    *               date:
+    *                 type: string
+    *                 format: date
+    *                 description: Дата расписания.
+    *               group:
+    *                 type: string
+    *                 format: string
+    *                 description: ID группы.
+    *               items:
+    *                 type: array
+    *                 description: Элементы расписания.
+    *                 items:
+    *                   type: object
+    *                   properties:
+    *                     discipline:
+    *                       type: string
+    *                       description: ID дисциплины.
+    *                     teacher:
+    *                       type: string
+    *                       description: ID преподавателя.
+    *                     type:
+    *                       type: string
+    *                       description: ID типа.
+    *                     audithoria:
+    *                       type: string
+    *                       description: ID аудитории.
+    *                     number:
+    *                       type: integer
+    *                       description: Номер занятия.
+    *     responses:
+    *       '200':
+    *         description: Успешное создание расписания.
+    *         content:
+    *           application/json:
+    *             schema:
+    *               type: object
+    *               properties:
+    *                 message:
+    *                   type: string
+    *                   description: Сообщение о успешном создании расписания.
+    *       '400':
+    *         description: Ошибка в запросе.
+    *         content:
+    *           application/json:
+    *             schema:
+    *               type: object
+    *               properties:
+    *                 message:
+    *                   type: string
+    *                   description: Сообщение об ошибке в запросе.
+    *       '409':
+    *         description: Конфликт.
+    *         content:
+    *           application/json:
+    *             schema:
+    *               type: object
+    *               properties:
+    *                 message:
+    *                   type: string
+    *                   description: Сообщение о конфликте.
+    *       '500':
+    *         description: Внутренняя ошибка сервера.
+    *         content:
+    *           application/json:
+    *             schema:
+    *               type: object
+    *               properties:
+    *                 message:
+    *                   type: string
+    *                   description: Сообщение об ошибке сервера.
+    */
     async addSchedule(req: Request, res: Response) {
         try {
             const { date, items } = req.body;
