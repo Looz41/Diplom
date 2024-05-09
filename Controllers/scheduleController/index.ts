@@ -5,77 +5,98 @@ import { Schedule } from "../../models/index";
 class scheduleController {
 
     /**
- * Добавление расписания
- * @swagger
- * /schedule/add:
- *   post:
- *     summary: Добавить расписание
- *     description: Создает новое расписание.
- *     tags: [schedule]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               date:
- *                 type: string
- *                 format: date
- *                 description: Дата расписания.
- *               items:
- *                 type: array
- *                 description: Элементы расписания.
- *                 items:
- *                   type: object
- *                   properties:
- *                     discipline:
- *                       type: string
- *                       description: ID дисциплины.
- *                     teacher:
- *                       type: string
- *                       description: ID преподавателя.
- *                     type:
- *                       type: string
- *                       description: ID типа.
- *                     audithoria:
- *                       type: string
- *                       description: ID аудитории.
- *     responses:
- *       '200':
- *         description: Успешное создание расписания.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   description: Сообщение о успешном создании расписания.
- *                 schedule:
- *                   $ref: '#/components/schemas/Schedule'
- *       '500':
- *         description: Внутренняя ошибка сервера.
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   description: Сообщение об ошибке.
- */
+  * Добавление расписания
+  * @swagger
+  * /schedule/add:
+  *   post:
+  *     summary: Добавить расписание
+  *     description: Создает новое расписание, проверяя доступность учителя, аудитории и указанного урока в указанную дату.
+  *     tags: [schedule]
+  *     security:
+  *       - bearerAuth: []
+  *     requestBody:
+  *       required: true
+  *       content:
+  *         application/json:
+  *           schema:
+  *             type: object
+  *             properties:
+  *               date:
+  *                 type: string
+  *                 format: date
+  *                 description: Дата расписания.
+  *               items:
+  *                 type: array
+  *                 description: Элементы расписания.
+  *                 items:
+  *                   type: object
+  *                   properties:
+  *                     discipline:
+  *                       type: string
+  *                       description: ID дисциплины.
+  *                     teacher:
+  *                       type: string
+  *                       description: ID преподавателя.
+  *                     type:
+  *                       type: string
+  *                       description: ID типа.
+  *                     audithoria:
+  *                       type: string
+  *                       description: ID аудитории.
+  *                     number:
+  *                       type: number
+  *                       description: Номер пары.
+  *     responses:
+  *       '200':
+  *         description: Успешное создание расписания.
+  *         content:
+  *           application/json:
+  *             schema:
+  *               type: object
+  *               properties:
+  *                 message:
+  *                   type: string
+  *                   description: Сообщение о успешном создании расписания.
+  *                 schedule:
+  *                   $ref: '#/components/schemas/Schedule'
+  *       '400':
+  *         description: Учитель или аудитория уже заняты на этот урок в указанную дату.
+  *         content:
+  *           application/json:
+  *             schema:
+  *               type: object
+  *               properties:
+  *                 message:
+  *                   type: string
+  *                   description: Сообщение об ошибке.
+  *       '500':
+  *         description: Внутренняя ошибка сервера.
+  *         content:
+  *           application/json:
+  *             schema:
+  *               type: object
+  *               properties:
+  *                 message:
+  *                   type: string
+  *                   description: Сообщение об ошибке.
+  */
     async addSchedule(req: Request, res: Response) {
         try {
             const { date, items } = req.body;
 
-            // Check if the teacher is already booked for the given class number on the given date
-            const existingSchedule = await Schedule.findOne({ date, 'items.number': { $in: items.map(item => item.number) }, 'items.teacher': { $in: items.map(item => item.teacher) } });
+            const existingSchedule = await Schedule.findOne({
+                date,
+                $or: items.map(item => ({
+                    'items.number': item.number,
+                    $or: [
+                        { 'items.teacher': item.teacher },
+                        { 'items.audithoria': item.audithoria }
+                    ]
+                }))
+            });
 
             if (existingSchedule) {
-                return res.status(400).json({ message: "Учитель уже занят на эту пару в указанную дату" });
+                return res.status(400).json({ message: "Учитель или аудитория уже заняты на этот урок в указанную дату" });
             }
 
             const newSchedule = new Schedule({
