@@ -2,6 +2,14 @@ import { Request, Response } from "express"
 
 import { Schedule } from "../../models/index";
 
+interface ScheduleItem {
+    discipline: string;
+    teacher: string;
+    type: string;
+    audithoria: string;
+    number: number;
+}
+
 class scheduleController {
 
     /**
@@ -86,7 +94,7 @@ class scheduleController {
 
             const existingSchedule = await Schedule.findOne({
                 date,
-                $or: items.map(item => ({
+                $or: items.map((item: ScheduleItem) => ({
                     'items.number': item.number,
                     $or: [
                         { 'items.teacher': item.teacher },
@@ -106,7 +114,7 @@ class scheduleController {
 
             await newSchedule.save();
 
-            res.status(200).json({ message: "Расписание успешно создано", schedule: newSchedule });
+            res.status(200).json({ message: "Расписание успешно создано" });
         } catch (error) {
             console.error('Ошибка:', error);
             res.status(500).json({ message: 'Ошибка сервера' });
