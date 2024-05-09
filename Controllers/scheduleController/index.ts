@@ -140,7 +140,11 @@ class scheduleController {
             const teachers = await Teachers.find({ _id: { $in: teachersIds } });
 
             for (const teacher of teachers) {
-                teacher.hH += 2;
+                if (teacher.hH !== undefined && teacher.hH !== null) {
+                    teacher.hH += 2;
+                } else {
+                    teacher.hH = 2;
+                }
                 await teacher.save();
             }
 
