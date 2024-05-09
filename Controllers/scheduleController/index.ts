@@ -102,7 +102,7 @@ class scheduleController {
     */
     async addSchedule(req: Request, res: Response) {
         try {
-            const { date, items } = req.body;
+            const { date, group, items } = req.body;
 
             for (const item of items) {
                 const discipline = await Disciplines.findOne({ _id: item.discipline, teachers: item.teacher });
@@ -128,6 +128,7 @@ class scheduleController {
 
             const newSchedule = new Schedule({
                 date,
+                group,
                 items
             });
 
@@ -208,7 +209,13 @@ class scheduleController {
                 query["items.teacher"] = req.query.teacher;
             }
 
-            const schedule = await Schedule.find(query);
+            const schedule = await Schedule.find(query)
+            .populate('group', 'name')
+            .populate('items.discipline', 'name')
+            .populate('items.teacher', 'name')
+            .populate('items.audithoria', 'name')
+            .populate('items.type', 'name')
+            .exec();
 
             if (!schedule || schedule.length === 0) {
                 return res.status(404).json({ message: "Расписание не найдено" });
