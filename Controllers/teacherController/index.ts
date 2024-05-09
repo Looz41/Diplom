@@ -8,13 +8,93 @@ import {
 const { validationResult } = require('express-validator')
 
 class teachersController {
-    /**
-     * Функция добавления нового преподавателя
-     * @param req - запрос
-     * @param res - ответ
-     * @returns res
-     */
 
+
+    /**
+ * Добавление преподавателя
+ * @swagger
+ * /teacher/add:
+ *   post:
+ *     summary: Добавить преподавателя
+ *     description: Создает нового преподавателя.
+ *     tags: [teachers]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               surname:
+ *                 type: string
+ *                 description: Фамилия преподавателя.
+ *               name:
+ *                 type: string
+ *                 description: Имя преподавателя.
+ *               patronymic:
+ *                 type: string
+ *                 description: Отчество преподавателя.
+ *               aH:
+ *                 type: number
+ *                 description: Общее количество часов.
+ *     responses:
+ *       '200':
+ *         description: Успешное создание преподавателя.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Сообщение о успешном создании преподавателя.
+ *       '400':
+ *         description: Ошибка ввода или недостаточно параметров.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Сообщение об ошибке.
+ *                 errors:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       msg:
+ *                         type: string
+ *                         description: Сообщение об ошибке.
+ *                       param:
+ *                         type: string
+ *                         description: Параметр, вызвавший ошибку.
+ *                       location:
+ *                         type: string
+ *                         description: Местоположение ошибки.
+ *       '409':
+ *         description: Преподаватель уже существует.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Сообщение об ошибке.
+ *       '500':
+ *         description: Внутренняя ошибка сервера.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Сообщение об ошибке.
+ */
     async addTeacher(req: Request, res: Response) {
         try {
             const errors = validationResult(req);
