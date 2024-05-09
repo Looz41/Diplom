@@ -1,13 +1,13 @@
-import { disciplineController } from "../../../Controllers/disciplineController"
+import { audithoriesController } from "../../../Controllers/audithoriesController"
 import { roleMiddleware } from "../../../middlewares/roleMiddleware";
 
 
 const express = require('express');
-const audirhoriesRouter = express.Router();
-const controller = new disciplineController();
+const audithoriesRouter = express.Router();
+const controller = new audithoriesController();
 
-audirhoriesRouter.post("/add", roleMiddleware(['ADMIN']), controller.addDiscipline);
-audirhoriesRouter.get("/get", roleMiddleware(['USER',"ADMIN"]), controller.getDiscipline);
+audithoriesRouter.post("/add", roleMiddleware(['ADMIN']), controller.addAudit);
+audithoriesRouter.get("/get", roleMiddleware(['USER',"ADMIN"]), controller.getAudithories);
 
 
-export { audirhoriesRouter };
+export { audithoriesRouter };

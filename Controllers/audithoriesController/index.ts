@@ -1,6 +1,5 @@
 import { Request, Response } from "express"
 
-import Types from '../../models/Types/index';
 import Audithories from "models/Audithories";
 
 const { validationResult } = require('express-validator')
@@ -82,7 +81,7 @@ class audithoriesController {
  *                   type: string
  *                   description: Сообщение об ошибке.
  */
-    async addType(req: Request, res: Response) {
+    async addAudit(req: Request, res: Response) {
         try {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
@@ -158,7 +157,7 @@ class audithoriesController {
  *                   type: string
  *                   description: Сообщение об ошибке.
  */
-    async getTypes(req: Request, res: Response) {
+    async getAudithories(req: Request, res: Response) {
         try {
             const audithories = await Audithories.find();
 

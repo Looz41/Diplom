@@ -1,13 +1,17 @@
 import express, { NextFunction, Request, Response } from 'express';
 import mongoose from 'mongoose';
-import { authRouter } from './Routes/authRouter';
-import { disciplineRouter } from './Routes/sheduleHelping/disciplineRouter';
-import { facultetRouter } from './Routes/facultetRouter';
-import { teacherRouter } from './Routes/sheduleHelping/teachersRouter';
+import path from 'path';
 import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
-import path from 'path';
-import { typesRouter } from './Routes/sheduleHelping/typesRouter';
+
+import {
+    authRouter,
+    disciplineRouter,
+    facultetRouter,
+    teacherRouter,
+    typesRouter,
+    audithoriesRouter,
+} from './Routes/';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -27,6 +31,7 @@ app.use('/discipline', disciplineRouter);
 app.use('/facultet', facultetRouter);
 app.use('/teacher', teacherRouter);
 app.use('/types', typesRouter);
+app.use('/audithories', audithoriesRouter);
 
 const options = {
     definition: {
