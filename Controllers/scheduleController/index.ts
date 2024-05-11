@@ -8,6 +8,7 @@ import {
     Audithories,
     Types
 } from "../../models/index";
+import { isValidObjectId } from "mongoose";
 
 interface ScheduleItem {
     discipline: string;
@@ -436,19 +437,19 @@ class scheduleController {
     async getScheduleAsExcel(req: Request, res: Response) {
         try {
             let query: any = {};
-    
+
             if (typeof req.query.date === 'string') {
                 query.date = req.query.date;
             }
-    
-            if (typeof req.query.teacher === 'string') {
+
+            if (typeof req.query.teacher === 'string' && isValidObjectId(req.query.teacher)) {
                 query["items.teacher"] = req.query.teacher;
             }
-    
-            if (typeof req.query.group === 'string') {
+
+            if (typeof req.query.group === 'string' && isValidObjectId(req.query.group)) {
                 query["group"] = req.query.group;
             }
-    
+
             const schedule = await Schedule.find(query)
                 .populate({
                     path: 'group',
@@ -456,48 +457,48 @@ class scheduleController {
                 })
                 .populate({
                     path: 'items.discipline',
-                    model: 'Disciplines', // Подставьте правильное имя модели
+                    model: Disciplines, // Ensure that the model name is correct
                     select: 'name'
                 })
                 .populate({
                     path: 'items.teacher',
-                    model: 'Teachers', // Подставьте правильное имя модели
+                    model: Teachers, // Ensure that the model name is correct
                     select: 'surname'
                 })
                 .populate({
                     path: 'items.audithoria',
-                    model: 'Audithories', // Подставьте правильное имя модели
+                    model: Audithories, // Ensure that the model name is correct
                     select: 'name'
                 })
                 .populate({
                     path: 'items.type',
-                    model: 'Types', // Подставьте правильное имя модели
+                    model: Types, // Ensure that the model name is correct
                     select: 'name'
                 })
-                .exec() as any[];
-    
+                .exec();
+
             if (!schedule || schedule.length === 0) {
                 return res.status(404).json({ message: "Расписание не найдено" });
             }
-    
+
             const workbook = new ExcelJS.Workbook();
             const worksheet = workbook.addWorksheet('Schedule');
-    
+
             // Группировка расписания по группам
             const groupedSchedule: { [groupName: string]: any[] } = {};
-            schedule.forEach(scheduleItem => {
+            schedule.forEach((scheduleItem: any) => {
                 const groupName = scheduleItem.group.name;
                 if (!(groupName in groupedSchedule)) {
                     groupedSchedule[groupName] = [];
                 }
                 groupedSchedule[groupName].push(scheduleItem);
             });
-    
+
             // Добавление заголовков для дат
             const dates = schedule.map(scheduleItem => scheduleItem.date.toISOString().split('T')[0]);
             const uniqueDates = Array.from(new Set(dates));
             worksheet.addRow(['Номер пары', ...uniqueDates]);
-    
+
             // Добавление данных по группам
             let rowIndex = 2; // Начинаем с 2, так как первая строка занята заголовком
             for (const groupName in groupedSchedule) {
@@ -524,7 +525,7 @@ class scheduleController {
                     rowIndex++;
                 }
             }
-    
+
             // Устанавливаем ширину столбцов
             worksheet.columns.forEach(column => {
                 let maxStringLength = 0;
@@ -536,20 +537,20 @@ class scheduleController {
                 });
                 column.width = maxStringLength < 10 ? 10 : maxStringLength;
             });
-    
+
             // Генерация файла Excel и отправка его клиенту
             res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
             res.setHeader('Content-Disposition', 'attachment; filename=schedule.xlsx');
-    
+
             await workbook.xlsx.write(res);
-    
+
             res.end();
         } catch (error) {
             console.error('Ошибка:', error);
             res.status(500).json({ message: 'Ошибка сервера' });
         }
-    }
 
+    }
 }
 
 export { scheduleController };
