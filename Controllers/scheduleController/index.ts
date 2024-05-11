@@ -9,6 +9,12 @@ import {
     Types
 } from "../../models/index";
 
+interface Query {
+    date?: string;
+    teacher?: string;
+    group?: string;
+}
+
 interface ScheduleItem {
     discipline: string;
     teacher: string;
@@ -456,18 +462,22 @@ class scheduleController {
     */
     async getSheduleExcel(req: Request, res: Response) {
         try {
-            let query: any = {};
+            let query: Query = req.query;
 
-            if (typeof req.query.date === 'string') {
-                query.date = req.query.date;
+            const { date, teacher, group } = query;
+
+            let queryObject: any = {};
+
+            if (typeof date === 'string') {
+                queryObject.date = date;
             }
 
-            if (typeof req.query.teacher === 'string') {
-                query["items.teacher"] = req.query.teacher;
+            if (typeof teacher === 'string') {
+                queryObject["items.teacher"] = teacher;
             }
 
-            if (typeof req.query.group === 'string') {
-                query["group"] = req.query.group;
+            if (typeof group === 'string') {
+                queryObject["group"] = group;
             }
 
             // Предположим, что ваша модель расписания выглядит так
