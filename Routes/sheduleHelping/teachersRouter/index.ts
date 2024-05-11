@@ -8,5 +8,6 @@ const controller = new teachersController();
 teacherRouter.post('/add', roleMiddleware(['ADMIN']), controller.addTeacher);
 teacherRouter.get('/get', roleMiddleware(['USER', "ADMIN"]), controller.getTeacher);
 teacherRouter.get('/getTeacherByDiscipline', roleMiddleware(['USER', "ADMIN"]), controller.getTeacherByDiscipline);
+teacherRouter.get('/edit', roleMiddleware(["ADMIN"]), controller.editTeacher);
 
 export { teacherRouter };

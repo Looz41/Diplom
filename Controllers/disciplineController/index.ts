@@ -138,6 +138,107 @@ class disciplineController {
     }
 
     /**
+ * Редактирование дисциплины
+ * @swagger
+ * /discipline/edit:
+ *   put:
+ *     summary: Редактирование дисциплины
+ *     tags:
+ *       - disciplines
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *                 description: Уникальный идентификатор дисциплины.
+ *               name:
+ *                 type: string
+ *                 description: Новое название дисциплины.
+ *               groups:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Новый список названий групп, к которым относится дисциплина.
+ *               teachers:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Новый список фамилий преподавателей, преподающих дисциплину.
+ *               aH:
+ *                 type: number
+ *                 description: Новое количество академических часов.
+ *     responses:
+ *       200:
+ *         description: Успешное редактирование дисциплины.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Сообщение об успешном редактировании дисциплины.
+ *       400:
+ *         description: Ошибка запроса. Возникает в случае неверных данных в запросе.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Сообщение об ошибке.
+ *       404:
+ *         description: Дисциплина не найдена.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Сообщение об ошибке.
+ *       500:
+ *         description: Ошибка сервера. Возникает в случае проблем на стороне сервера.
+ */
+async editDiscipline(req: Request, res: Response) {
+    try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ error: 'Ошибка запроса', errors: errors.array() });
+        }
+
+        const { id, name, groups, teachers, aH } = req.body;
+
+        if (!id || !name || !groups || !teachers || !aH) {
+            return res.status(400).json({ error: 'Параметры id, name, groups, teachers и aH обязательны' });
+        }
+
+        const existingDiscipline = await Disciplines.findById(id);
+        if (!existingDiscipline) {
+            return res.status(404).json({ error: `Дисциплина с id ${id} не найдена` });
+        }
+
+        existingDiscipline.name = name;
+        existingDiscipline.groups = groups;
+        existingDiscipline.teachers = teachers;
+        existingDiscipline.aH = aH;
+        await existingDiscipline.save();
+
+        res.json({ message: `Дисциплина с id ${id} успешно отредактирована` });
+    } catch (error) {
+        console.error('Ошибка:', error);
+        res.status(500).json({ message: 'Ошибка сервера' });
+    }
+}
+
+    /**
   * Получение списка дисциплин
   * @swagger
   * /discipline/get:

@@ -156,6 +156,124 @@ class scheduleController {
     }
 
     /**
+     * Редактирование расписания
+     * @swagger
+     * /schedule/edit:
+     *   put:
+     *     summary: Редактирование расписания
+     *     description: Обновляет существующее расписание.
+     *     tags: [schedule]
+     *     security:
+     *       - bearerAuth: []
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               id:
+     *                 type: string
+     *                 description: Уникальный идентификатор расписания.
+     *               date:
+     *                 type: string
+     *                 format: date
+     *                 description: Новая дата расписания.
+     *               group:
+     *                 type: string
+     *                 description: Новый ID группы.
+     *               items:
+     *                 type: array
+     *                 description: Новые элементы расписания.
+     *                 items:
+     *                   type: object
+     *                   properties:
+     *                     id:
+     *                       type: string
+     *                       description: Уникальный идентификатор элемента расписания.
+     *                     discipline:
+     *                       type: string
+     *                       description: Новый ID дисциплины.
+     *                     teacher:
+     *                       type: string
+     *                       description: Новый ID преподавателя.
+     *                     type:
+     *                       type: string
+     *                       description: Новый ID типа.
+     *                     audithoria:
+     *                       type: string
+     *                       description: Новый ID аудитории.
+     *                     number:
+     *                       type: integer
+     *                       description: Новый номер занятия.
+     *     responses:
+     *       '200':
+     *         description: Успешное обновление расписания.
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 message:
+     *                   type: string
+     *                   description: Сообщение об успешном обновлении расписания.
+     *       '400':
+     *         description: Ошибка в запросе.
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 message:
+     *                   type: string
+     *                   description: Сообщение об ошибке в запросе.
+     *       '404':
+     *         description: Расписание не найдено.
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   description: Сообщение об ошибке.
+     *       '500':
+     *         description: Внутренняя ошибка сервера.
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 message:
+     *                   type: string
+     *                   description: Сообщение об ошибке сервера.
+     */
+    async editSchedule(req: Request, res: Response) {
+        try {
+            const { id, date, group, items } = req.body;
+
+            if (!id || !date || !group || !items) {
+                return res.status(400).json({ message: 'Параметры id, date, group и items обязательны' });
+            }
+
+            const existingSchedule = await Schedule.findById(id);
+            if (!existingSchedule) {
+                return res.status(404).json({ error: `Расписание с id ${id} не найдено` });
+            }
+
+            existingSchedule.date = date;
+            existingSchedule.group = group;
+            existingSchedule.items = items;
+            await existingSchedule.save();
+
+            res.status(200).json({ message: "Расписание успешно обновлено" });
+        } catch (error) {
+            console.error('Ошибка:', error);
+            res.status(500).json({ message: 'Ошибка сервера' });
+        }
+    }
+
+    /**
  * Получение расписания
  * @swagger
  * /schedule/get:

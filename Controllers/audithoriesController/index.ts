@@ -110,6 +110,112 @@ class audithoriesController {
     }
 
     /**
+     * Редактирование аудитории
+     * @swagger
+     * /audithories/edit:
+     *   put:
+     *     summary: Редактировать аудиторию
+     *     tags: [audithories]
+     *     security:
+     *       - bearerAuth: []
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               id:
+     *                 type: string
+     *                 description: Уникальный идентификатор аудитории.
+     *               name:
+     *                 type: string
+     *                 description: Новое имя аудитории.
+     *             required:
+     *               - id
+     *               - name
+     *     responses:
+     *       '200':
+     *         description: Успешное редактирование аудитории.
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 message:
+     *                   type: string
+     *                   description: Сообщение о успешном редактировании аудитории.
+     *       '400':
+     *         description: Некорректный запрос.
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   description: Сообщение об ошибке.
+     *                 errors:
+     *                   type: array
+     *                   items:
+     *                     type: object
+     *                     properties:
+     *                       param:
+     *                         type: string
+     *                         description: Название параметра с ошибкой.
+     *                       msg:
+     *                         type: string
+     *                         description: Сообщение об ошибке.
+     *       '404':
+     *         description: Аудитория не найдена.
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   description: Сообщение об ошибке.
+     *       '500':
+     *         description: Внутренняя ошибка сервера.
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 message:
+     *                   type: string
+     *                   description: Сообщение об ошибке.
+     */
+    async editAudit(req: Request, res: Response) {
+        try {
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                return res.status(400).json({ error: 'Ошибка ввода', errors: errors.array() });
+            }
+
+            const { id, name } = req.body;
+
+            if (!id || !name) {
+                return res.status(400).json({ error: 'Параметры id и name обязательны' });
+            }
+
+            const existingAudithor = await Audithories.findById(id);
+            if (!existingAudithor) {
+                return res.status(404).json({ error: `Аудитория с id ${id} не найдена` });
+            }
+
+            existingAudithor.name = name;
+            await existingAudithor.save();
+
+            res.json({ message: `Аудитория с id ${id} успешно отредактирована` });
+        } catch (error) {
+            console.error('Ошибка:', error);
+            res.status(500).json({ message: 'Ошибка сервера' });
+        }
+    }
+
+    /**
  * Получение всех аудиторий
  * @swagger
  * /audithories/get:

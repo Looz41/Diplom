@@ -140,6 +140,127 @@ class facultetController {
     }
 
     /**
+     * Редактирование факультета
+     * @swagger
+     * /facultet/edit:
+     *   put:
+     *     summary: Редактирование факультета
+     *     tags: [facultet]
+     *     security:
+     *       - bearerAuth: []
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               id:
+     *                 type: string
+     *                 description: Уникальный идентификатор факультета
+     *               name:
+     *                 type: string
+     *                 description: Новое название факультета
+     *               groups:
+     *                 type: array
+     *                 description: Новый список названий групп
+     *                 items:
+     *                   type: string
+     *     responses:
+     *       '200':
+     *         description: Успешное редактирование факультета
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 result:
+     *                   type: boolean
+     *                   description: Флаг успешного редактирования
+     *                 message:
+     *                   type: string
+     *                   description: Сообщение об успешном редактировании
+     *       '400':
+     *         description: Ошибка валидации или некорректные данные
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 result:
+     *                   type: boolean
+     *                   description: Флаг ошибки
+     *                 message:
+     *                   type: string
+     *                   description: Сообщение об ошибке
+     *                 errors:
+     *                   type: array
+     *                   description: Список ошибок валидации
+     *                   items:
+     *                     type: object
+     *                     properties:
+     *                       param:
+     *                         type: string
+     *                         description: Имя параметра с ошибкой
+     *                       msg:
+     *                         type: string
+     *                         description: Текст ошибки
+     *                       value:
+     *                         type: string
+     *                         description: Некорректное значение параметра
+     *       '404':
+     *         description: Факультет не найден
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   description: Сообщение об ошибке
+     *       '500':
+     *         description: Внутренняя ошибка сервера
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 message:
+     *                   type: string
+     *                   description: Сообщение об ошибке сервера
+     */
+    async editFacultet(req: Request, res: Response) {
+        try {
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                res.status(400).json({ result: false, message: 'Ошибка валидации', errors: errors.array() });
+                return;
+            }
+
+            const { id, name, groups } = req.body;
+
+            if (!id || !name || !groups) {
+                res.status(400).json({ result: false, message: 'Параметры id, name и groups обязательны' });
+                return;
+            }
+
+            const existingFacultet = await Facultets.findById(id);
+            if (!existingFacultet) {
+                res.status(404).json({ error: `Факультет с id ${id} не найден` });
+                return;
+            }
+
+            existingFacultet.name = name;
+            await existingFacultet.save();
+
+            res.json({ result: true, message: `Факультет с id ${id} успешно отредактирован` });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ message: 'Ошибка сервера' });
+        }
+    }
+
+    /**
  * Получение списка факультетов с группами
  * @swagger
  * /facultet/get:

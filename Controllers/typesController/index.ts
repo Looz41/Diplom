@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
 
-import {Types} from '../../models/';
+import { Types } from '../../models/';
 
 const { validationResult } = require('express-validator')
 
@@ -108,6 +108,96 @@ class typesController {
             res.status(500).json({ message: 'Ошибка сервера' });
         }
     }
+
+    /**
+ * Редактирование типа
+ * @swagger
+ * /types/edit:
+ *   put:
+ *     summary: Редактирование типа
+ *     description: Обновляет информацию о существующем типе.
+ *     tags: [types]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *                 description: Уникальный идентификатор типа.
+ *               name:
+ *                 type: string
+ *                 description: Новое имя типа.
+ *     responses:
+ *       '200':
+ *         description: Успешное обновление информации о типе.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Сообщение об успешном обновлении информации о типе.
+ *       '400':
+ *         description: Ошибка в запросе или недостаточно параметров.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Сообщение об ошибке в запросе.
+ *       '404':
+ *         description: Тип не найден.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Сообщение об ошибке.
+ *       '500':
+ *         description: Внутренняя ошибка сервера.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Сообщение об ошибке сервера.
+ */
+    async editType(req: Request, res: Response) {
+        try {
+            const { id, name } = req.body;
+
+            if (!id || !name) {
+                return res.status(400).json({ message: 'Параметры id и name обязательны' });
+            }
+
+            const existingType = await Types.findById(id);
+            if (!existingType) {
+                return res.status(404).json({ error: `Тип с id ${id} не найден` });
+            }
+
+            existingType.name = name;
+
+            await existingType.save();
+
+            res.status(200).json({ message: "Информация о типе успешно обновлена" });
+        } catch (error) {
+            console.error('Ошибка:', error);
+            res.status(500).json({ message: 'Ошибка сервера' });
+        }
+    }
+
 
     /**
  * Получение всех типов

@@ -124,6 +124,107 @@ class teachersController {
     }
 
     /**
+     * Редактирование преподавателя
+     * @swagger
+     * /teacher/edit:
+     *   put:
+     *     summary: Редактирование преподавателя
+     *     description: Обновляет информацию о существующем преподавателе.
+     *     tags: [teachers]
+     *     security:
+     *       - bearerAuth: []
+     *     requestBody:
+     *       required: true
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             properties:
+     *               id:
+     *                 type: string
+     *                 description: Уникальный идентификатор преподавателя.
+     *               surname:
+     *                 type: string
+     *                 description: Новая фамилия преподавателя.
+     *               name:
+     *                 type: string
+     *                 description: Новое имя преподавателя.
+     *               patronymic:
+     *                 type: string
+     *                 description: Новое отчество преподавателя.
+     *               aH:
+     *                 type: number
+     *                 description: Новое общее количество часов.
+     *     responses:
+     *       '200':
+     *         description: Успешное обновление информации о преподавателе.
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 message:
+     *                   type: string
+     *                   description: Сообщение об успешном обновлении информации о преподавателе.
+     *       '400':
+     *         description: Ошибка в запросе или недостаточно параметров.
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 message:
+     *                   type: string
+     *                   description: Сообщение об ошибке в запросе.
+     *       '404':
+     *         description: Преподаватель не найден.
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 error:
+     *                   type: string
+     *                   description: Сообщение об ошибке.
+     *       '500':
+     *         description: Внутренняя ошибка сервера.
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 message:
+     *                   type: string
+     *                   description: Сообщение об ошибке сервера.
+     */
+    async editTeacher(req: Request, res: Response) {
+        try {
+            const { id, surname, name, patronymic, aH } = req.body;
+
+            if (!id || (!surname && !name && !patronymic && !aH)) {
+                return res.status(400).json({ message: 'Параметры id и хотя бы один из полей: surname, name, patronymic, aH обязательны' });
+            }
+
+            const existingTeacher = await Teachers.findById(id);
+            if (!existingTeacher) {
+                return res.status(404).json({ error: `Преподаватель с id ${id} не найден` });
+            }
+
+            existingTeacher.surname = surname;
+            existingTeacher.name = name;
+            existingTeacher.patronymic = patronymic;
+            existingTeacher.aH = aH;
+
+            await existingTeacher.save();
+
+            res.status(200).json({ message: "Информация о преподавателе успешно обновлена" });
+        } catch (error) {
+            console.error('Ошибка:', error);
+            res.status(500).json({ message: 'Ошибка сервера' });
+        }
+    }
+
+    /**
      * Получение преподавателей по дисциплине
      * @swagger
      * /teacher/getTeacherByDiscipline:
