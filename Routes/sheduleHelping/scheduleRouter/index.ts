@@ -7,7 +7,7 @@ const controller = new scheduleController();
 
 scheduleRouter.post('/add', roleMiddleware(['ADMIN']), controller.addSchedule);
 scheduleRouter.get('/get', roleMiddleware(['USER', "ADMIN"]), controller.getShedule);
-scheduleRouter.get('/getExcel', roleMiddleware(['USER', "ADMIN"]), controller.getScheduleAsExcel);
+scheduleRouter.get('/getExcel', roleMiddleware(['USER', "ADMIN"]), controller.getSheduleExcel);
 scheduleRouter.post('/edit', roleMiddleware(["ADMIN"]), controller.editSchedule);
 
 export { scheduleRouter };

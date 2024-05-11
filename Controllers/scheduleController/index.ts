@@ -1,5 +1,5 @@
 import { Request, Response } from "express"
-import ExcelJS from 'exceljs';
+import { Workbook } from 'exceljs';
 
 import {
     Disciplines,
@@ -8,7 +8,6 @@ import {
     Audithories,
     Types
 } from "../../models/index";
-import { isValidObjectId } from "mongoose";
 
 interface ScheduleItem {
     discipline: string;
@@ -16,6 +15,13 @@ interface ScheduleItem {
     type: string;
     audithoria: string;
     number: number;
+}
+
+function groupBy(array, key) {
+    return array.reduce((result, currentValue) => {
+        (result[currentValue[key]] = result[currentValue[key]] || []).push(currentValue);
+        return result;
+    }, {});
 }
 
 class scheduleController {
@@ -434,7 +440,9 @@ class scheduleController {
     *                   type: string
     *                   description: Сообщение об ошибке.
     */
-    async getScheduleAsExcel(req: Request, res: Response) {
+
+
+    async getSheduleExcel(req, res) {
         try {
             let query: any = {};
 
@@ -442,129 +450,61 @@ class scheduleController {
                 query.date = req.query.date;
             }
 
-            if (typeof req.query.teacher === 'string' && isValidObjectId(req.query.teacher)) {
+            if (typeof req.query.teacher === 'string') {
                 query["items.teacher"] = req.query.teacher;
             }
 
-            if (typeof req.query.group === 'string' && isValidObjectId(req.query.group)) {
+            if (typeof req.query.group === 'string') {
                 query["group"] = req.query.group;
             }
 
             const schedule = await Schedule.find(query)
-                .populate({
-                    path: 'group',
-                    select: 'name'
-                })
-                .populate({
-                    path: 'items.discipline',
-                    model: 'Disciplines',
-                    select: 'name'
-                })
-                .populate({
-                    path: 'items.teacher',
-                    model: 'Teachers',
-                    select: 'surname'
-                })
-                .populate({
-                    path: 'items.audithoria',
-                    model: 'Audithories',
-                    select: 'name'
-                })
-                .populate({
-                    path: 'items.type',
-                    model: 'Types',
-                    select: 'name'
-                })
+                .populate('group', 'name')
+                .populate('items.discipline', 'name')
+                .populate('items.teacher')
+                .populate('items.audithoria', 'name')
+                .populate('items.type', 'name')
                 .exec();
 
             if (!schedule || schedule.length === 0) {
                 return res.status(404).json({ message: "Расписание не найдено" });
             }
 
-            // Создание объекта для группировки расписания по дате и группе
-            const groupedSchedule: { [date: string]: { [groupName: string]: any[] } } = {};
+            const workbook = new Workbook();
+            const worksheet = workbook.addWorksheet('Расписание');
 
-            // Заполнение объекта groupedSchedule
-            schedule.forEach(scheduleItem => {
-                const date = scheduleItem.date.toISOString().split('T')[0];
-                const groupName = (scheduleItem.group as any).name;
+            // Установка заголовка
+            worksheet.addRow(['Группа', 'Дата', 'Пара', 'Дисциплина', 'Преподаватель', 'Тип', 'Аудитория']);
 
-                if (!(date in groupedSchedule)) {
-                    groupedSchedule[date] = {};
-                }
+            // Группировка данных по группам
+            const groupedSchedule = groupBy(schedule, 'group.name');
 
-                if (!(groupName in groupedSchedule[date])) {
-                    groupedSchedule[date][groupName] = [];
-                }
-
-                groupedSchedule[date][groupName].push(scheduleItem);
-            });
-
-            // Создание массива уникальных дат
-            const uniqueDates = Object.keys(groupedSchedule);
-
-            // Создание нового экземпляра Workbook и Worksheet
-            const workbook = new ExcelJS.Workbook();
-            const worksheet = workbook.addWorksheet('Schedule');
-
-            // Добавление заголовков для дат
-            worksheet.addRow(['', ...uniqueDates]);
-
-            // Добавление данных по группам
+            // Заполнение таблицы Excel данными
             for (const groupName in groupedSchedule) {
                 if (groupedSchedule.hasOwnProperty(groupName)) {
-                    const groupData = groupedSchedule[groupName];
-
-                    if (!groupData) {
-                        continue; // Пропускаем текущую итерацию, если groupData === undefined
-                    }
-
-                    // Добавление заголовка для группы
+                    const groupSchedules = groupedSchedule[groupName];
                     worksheet.addRow([groupName]);
 
-                    // Инициализация массива данных для строки в таблице Excel
-                    const rowData: any[] = [];
-
-                    // Для каждой даты
-                    uniqueDates.forEach(date => {
-                        const dateData = groupData[date];
-
-                        // Проверяем, определена ли переменная dateData
-                        if (dateData) {
-                            const scheduleNumbers: string[] = [];
-
-                            // Для каждой записи в расписании для данной группы и даты
-                            dateData.forEach(scheduleItem => {
-                                const scheduleNumber = scheduleItem.items[0].number.toString();
-                                if (!scheduleNumbers.includes(scheduleNumber)) {
-                                    scheduleNumbers.push(scheduleNumber);
-                                }
-                            });
-
-                            // Добавление строки с номерами пар в массив данных
-                            rowData.push(scheduleNumbers.join('\n'));
-                        } else {
-                            // Если dateData не определена, добавляем пустую строку
-                            rowData.push('');
+                    for (const schedule of groupSchedules) {
+                        for (const item of schedule.items) {
+                            worksheet.addRow([
+                                null, // Пустая ячейка для группы, чтобы не повторять её на каждой строке
+                                schedule.date,
+                                item.number,
+                                `${item.discipline.name}, ${item.teacher.surname}, ${item.type.name}, ${item.audithoria.name}`
+                            ]);
                         }
-                    });
-
-                    // Добавление строки с номерами пар в таблицу Excel
-                    worksheet.addRow(rowData);
-                    worksheet.addRow([]); // Пустая строка для разделения групп
+                    }
                 }
             }
 
-            // Устанавливаем ширину столбцов
-            worksheet.columns.forEach(column => {
-                column.width = 15; // Установите ширину столбца по вашему усмотрению
-            });
+            // Генерация файла Excel
+            const excelBuffer = await workbook.xlsx.writeBuffer();
 
-            // Генерация файла Excel и отправка его клиенту
+            // Отправка файла Excel на клиент
             res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-            res.setHeader('Content-Disposition', 'attachment; filename=schedule.xlsx');
-            await workbook.xlsx.write(res);
-            res.end();
+            res.setHeader('Content-Disposition', 'attachment; filename=расписание.xlsx');
+            res.send(excelBuffer);
         } catch (error) {
             console.error('Ошибка:', error);
             res.status(500).json({ message: 'Ошибка сервера' });
