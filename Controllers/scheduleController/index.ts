@@ -456,22 +456,22 @@ class scheduleController {
                 })
                 .populate({
                     path: 'items.discipline',
-                    model: Disciplines,
+                    model: 'Disciplines',
                     select: 'name'
                 })
                 .populate({
                     path: 'items.teacher',
-                    model: Teachers,
+                    model: 'Teachers',
                     select: 'surname'
                 })
                 .populate({
                     path: 'items.audithoria',
-                    model: Audithories,
+                    model: 'Audithories',
                     select: 'name'
                 })
                 .populate({
                     path: 'items.type',
-                    model: Types,
+                    model: 'Types',
                     select: 'name'
                 })
                 .exec();
@@ -483,43 +483,61 @@ class scheduleController {
             const workbook = new ExcelJS.Workbook();
             const worksheet = workbook.addWorksheet('Schedule');
 
-            // Создаем объект для хранения индексов заголовков дат
-            const dateIndices: { [date: string]: number } = {};
-            let columnIndex = 2; // Начинаем с 2, так как первая колонка для номера пары
-
-            // Добавляем заголовки для дат
-            schedule.forEach(scheduleItem => {
-                const date = scheduleItem.date.toISOString().split('T')[0];
-                if (!(date in dateIndices)) {
-                    worksheet.getColumn(columnIndex).values = [date];
-                    dateIndices[date] = columnIndex;
-                    columnIndex++;
+            // Группировка расписания по группам
+            const groupedSchedule: { [groupName: string]: any[] } = {};
+            schedule.forEach((scheduleItem: any) => {
+                const groupName = scheduleItem.group.name;
+                if (!(groupName in groupedSchedule)) {
+                    groupedSchedule[groupName] = [];
                 }
+                groupedSchedule[groupName].push(scheduleItem);
             });
 
-            worksheet.getColumn(1).values = ['Номер пары'];
+            // Добавление заголовков для дат
+            const dates = schedule.map(scheduleItem => scheduleItem.date.toISOString().split('T')[0]);
+            const uniqueDates = Array.from(new Set(dates));
+            worksheet.addRow(['Номер пары', ...uniqueDates]);
 
-            schedule.forEach(scheduleItem => {
-                scheduleItem.items.sort((a, b) => a.number - b.number);
-            });
-
-            // Добавление данных
-            const maxItemsCount = Math.max(...schedule.map(scheduleItem => scheduleItem.items.length));
-            for (let i = 0; i < maxItemsCount; i++) {
-                const rowData = [(i + 1).toString()];
-                schedule.forEach(scheduleItem => {
-                    const item = scheduleItem.items.find(item => item.number === i + 1);
-                    if (item) {
-                        const date = scheduleItem.date.toISOString().split('T')[0];
-                        const columnIndex = dateIndices[date];
-                        const disciplineName = (item.discipline as any).name;
-                        const teacherSurname = (item.teacher as any).surname;
-                        rowData[columnIndex] = `${disciplineName}\n${teacherSurname}`;
-                    }
-                });
-                worksheet.addRow(rowData);
+            // Добавление данных по группам
+            let rowIndex = 2; // Начинаем с 2, так как первая строка занята заголовком
+            for (const groupName in groupedSchedule) {
+                if (groupedSchedule.hasOwnProperty(groupName)) {
+                    const groupSchedule = groupedSchedule[groupName];
+                    worksheet.addRow([groupName]); // Добавляем заголовок для группы
+                    groupSchedule.forEach(scheduleItem => {
+                        const rowData = [(scheduleItem.items[0].number).toString()]; // Номер пары
+                        uniqueDates.forEach(date => {
+                            const matchingItem = scheduleItem.items.find(item => item.date.toISOString().split('T')[0] === date);
+                            if (matchingItem) {
+                                const disciplineName = (matchingItem.discipline as any).name;
+                                const teacherSurname = (matchingItem.teacher as any).surname;
+                                const typeName = (matchingItem.type as any).name;
+                                rowData.push(`${disciplineName}\n${teacherSurname}\n${typeName}`);
+                            } else {
+                                rowData.push('');
+                            }
+                        });
+                        worksheet.addRow(rowData);
+                        rowIndex++;
+                    });
+                    worksheet.addRow([]); // Пустая строка для разделения групп
+                    rowIndex++;
+                }
             }
 
+            // Устанавливаем ширину столбцов
+            worksheet.columns.forEach(column => {
+                let maxStringLength = 0;
+                column.eachCell({ includeEmpty: true }, cell => {
+                    const length = cell.value ? String(cell.value).length : 0;
+                    if (length > maxStringLength) {
+                        maxStringLength = length;
+                    }
+                });
+                column.width = maxStringLength < 10 ? 10 : maxStringLength;
+            });
+
+            // Генерация файла Excel и отправка его клиенту
             res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
             res.setHeader('Content-Disposition', 'attachment; filename=schedule.xlsx');
 
