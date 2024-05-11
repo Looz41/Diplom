@@ -456,22 +456,22 @@ class scheduleController {
                 })
                 .populate({
                     path: 'items.discipline',
-                    model: Disciplines, // Используем модель Disciplines вместо 'Disciplines'
+                    model: Disciplines,
                     select: 'name'
                 })
                 .populate({
                     path: 'items.teacher',
-                    model: Teachers, // Используем модель Teachers вместо 'Teachers'
-                    select: 'surname' // Изменено на свойство, присутствующее в модели Teachers
+                    model: Teachers,
+                    select: 'surname'
                 })
                 .populate({
                     path: 'items.audithoria',
-                    model: Audithories, // Используем модель Audithories вместо 'Audithories'
+                    model: Audithories,
                     select: 'name'
                 })
                 .populate({
                     path: 'items.type',
-                    model: Types, // Используем модель Types вместо 'Types'
+                    model: Types,
                     select: 'name'
                 })
                 .exec();
@@ -483,28 +483,31 @@ class scheduleController {
             const workbook = new ExcelJS.Workbook();
             const worksheet = workbook.addWorksheet('Schedule');
 
-            // Добавление заголовков
-            worksheet.addRow(['Дата', 'Группа', 'Дисциплина', 'Преподаватель', 'Аудитория', 'Тип', 'Номер']);
+            // Создаем заголовки для дат
+            const dates = schedule.map(scheduleItem => scheduleItem.date);
+            worksheet.addRow(['Номер пары', ...dates]);
 
             // Добавление данных
+            let maxItemsCount = 0;
             schedule.forEach((scheduleItem) => {
-                scheduleItem.items.forEach((item) => {
-                    const disciplineName = (item.discipline as any).name;
-                    const teacherSurname = (item.teacher as any).surname;
-                    const audithoriaName = (item.audithoria as any).name;
-                    const typeName = (item.type as any).name;
-
-                    worksheet.addRow([
-                        scheduleItem.date,
-                        (scheduleItem.group as any).name,
-                        disciplineName,
-                        teacherSurname,
-                        audithoriaName,
-                        typeName,
-                        item.number
-                    ]);
-                });
+                maxItemsCount = Math.max(maxItemsCount, scheduleItem.items.length);
             });
+
+            for (let i = 0; i < maxItemsCount; i++) {
+                const rowData = [(i + 1).toString()];
+                schedule.forEach((scheduleItem) => {
+                    const item = scheduleItem.items[i];
+                    if (item) {
+                        const disciplineName = (item.discipline as any).name;
+                        const teacherSurname = (item.teacher as any).surname;
+                        const typeParas = (item.type as any).surname;
+                        rowData.push(`${disciplineName}\n${teacherSurname}\n${typeParas}`);
+                    } else {
+                        rowData.push('');
+                    }
+                });
+                worksheet.addRow(rowData);
+            }
 
             // Генерация файла Excel и отправка его клиенту
             res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -518,6 +521,7 @@ class scheduleController {
             res.status(500).json({ message: 'Ошибка сервера' });
         }
     }
+
 }
 
 export { scheduleController };
