@@ -177,6 +177,11 @@ class scheduleController {
  *         schema:
  *           type: string
  *         description: ID преподавателя для фильтрации расписания.
+ *       - in: query
+ *         name: group
+ *         schema:
+ *           type: string
+ *         description: ID группы для фильтрации расписания.
  *     responses:
  *       '200':
  *         description: Успешное получение расписания.
@@ -221,6 +226,10 @@ class scheduleController {
 
             if (typeof req.query.teacher === 'string') {
                 query["items.teacher"] = req.query.teacher;
+            }
+
+            if (typeof req.query.group === 'string') {
+                query["items.group"] = req.query.group;
             }
 
             const schedule = await Schedule.find(query)
