@@ -436,19 +436,19 @@ class scheduleController {
     async getScheduleAsExcel(req: Request, res: Response) {
         try {
             let query: any = {};
-
+    
             if (typeof req.query.date === 'string') {
                 query.date = req.query.date;
             }
-
+    
             if (typeof req.query.teacher === 'string') {
                 query["items.teacher"] = req.query.teacher;
             }
-
+    
             if (typeof req.query.group === 'string') {
                 query["group"] = req.query.group;
             }
-
+    
             const schedule = await Schedule.find(query)
                 .populate({
                     path: 'group',
@@ -456,48 +456,48 @@ class scheduleController {
                 })
                 .populate({
                     path: 'items.discipline',
-                    model: 'Disciplines',
+                    model: 'Disciplines', // Подставьте правильное имя модели
                     select: 'name'
                 })
                 .populate({
                     path: 'items.teacher',
-                    model: 'Teachers',
+                    model: 'Teachers', // Подставьте правильное имя модели
                     select: 'surname'
                 })
                 .populate({
                     path: 'items.audithoria',
-                    model: 'Audithories',
+                    model: 'Audithories', // Подставьте правильное имя модели
                     select: 'name'
                 })
                 .populate({
                     path: 'items.type',
-                    model: 'Types',
+                    model: 'Types', // Подставьте правильное имя модели
                     select: 'name'
                 })
-                .exec();
-
+                .exec() as any[];
+    
             if (!schedule || schedule.length === 0) {
                 return res.status(404).json({ message: "Расписание не найдено" });
             }
-
+    
             const workbook = new ExcelJS.Workbook();
             const worksheet = workbook.addWorksheet('Schedule');
-
+    
             // Группировка расписания по группам
             const groupedSchedule: { [groupName: string]: any[] } = {};
-            schedule.forEach((scheduleItem: any) => {
+            schedule.forEach(scheduleItem => {
                 const groupName = scheduleItem.group.name;
                 if (!(groupName in groupedSchedule)) {
                     groupedSchedule[groupName] = [];
                 }
                 groupedSchedule[groupName].push(scheduleItem);
             });
-
+    
             // Добавление заголовков для дат
             const dates = schedule.map(scheduleItem => scheduleItem.date.toISOString().split('T')[0]);
             const uniqueDates = Array.from(new Set(dates));
             worksheet.addRow(['Номер пары', ...uniqueDates]);
-
+    
             // Добавление данных по группам
             let rowIndex = 2; // Начинаем с 2, так как первая строка занята заголовком
             for (const groupName in groupedSchedule) {
@@ -509,9 +509,9 @@ class scheduleController {
                         uniqueDates.forEach(date => {
                             const matchingItem = scheduleItem.items.find(item => item.date.toISOString().split('T')[0] === date);
                             if (matchingItem) {
-                                const disciplineName = (matchingItem.discipline as any).name;
-                                const teacherSurname = (matchingItem.teacher as any).surname;
-                                const typeName = (matchingItem.type as any).name;
+                                const disciplineName = matchingItem.discipline.name;
+                                const teacherSurname = matchingItem.teacher.surname;
+                                const typeName = matchingItem.type.name;
                                 rowData.push(`${disciplineName}\n${teacherSurname}\n${typeName}`);
                             } else {
                                 rowData.push('');
@@ -524,7 +524,7 @@ class scheduleController {
                     rowIndex++;
                 }
             }
-
+    
             // Устанавливаем ширину столбцов
             worksheet.columns.forEach(column => {
                 let maxStringLength = 0;
@@ -536,13 +536,13 @@ class scheduleController {
                 });
                 column.width = maxStringLength < 10 ? 10 : maxStringLength;
             });
-
+    
             // Генерация файла Excel и отправка его клиенту
             res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
             res.setHeader('Content-Disposition', 'attachment; filename=schedule.xlsx');
-
+    
             await workbook.xlsx.write(res);
-
+    
             res.end();
         } catch (error) {
             console.error('Ошибка:', error);
