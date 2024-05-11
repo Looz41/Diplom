@@ -434,6 +434,7 @@ class scheduleController {
     *                   type: string
     *                   description: Сообщение об ошибке.
     */
+    //@ts-ignore
     async getScheduleAsExcel(req: Request, res: Response) {
         try {
             let query: any = {};
