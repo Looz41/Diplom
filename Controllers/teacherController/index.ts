@@ -263,11 +263,11 @@ class teachersController {
      */
     async getTeacherByDiscipline(req: Request, res: Response) {
         try {
-            if (!req.query || !req.query.id) {
+            const { id, date } = req.query
+
+            if (!req.query || !id) {
                 return res.status(400).json({ message: 'Идентификатор дисциплины не указан' });
             }
-
-            const { id } = req.query;
 
             const discipline = await Disciplines.findOne({ _id: id })
                 .populate('teachers')
@@ -279,10 +279,10 @@ class teachersController {
 
             let teachers = discipline.teachers;
 
-            const teachersWithHH = teachers.filter((teacher: any) => teacher.hH !== undefined && teacher.hH !== 0);
-            const teachersWithoutHH = teachers.filter((teacher: any) => teacher.hH === undefined || teacher.hH === 0);
+            const teachersWithHH = teachers.filter((teacher: any) => teacher.hH !== undefined && teacher.burden.filter(e => e.mounth.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) === new Date((date as string)).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }))[0].hH !== 0);
+            const teachersWithoutHH = teachers.filter((teacher: any) => teacher.hH === undefined || teacher.burden.filter(e => e.mounth.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) === new Date((date as string)).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }))[0].hH === 0);
 
-            teachersWithHH.sort((a: any, b: any) => (b.aH / b.hH) - (a.aH / a.hH));
+            teachersWithHH.sort((a: any, b: any) => (b.aH / b.burden.filter(e => e.mounth.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) === new Date((date as string)).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }))[0].hH) - (a.aH / a.b.burden.filter(e => e.mounth.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) === new Date((date as string)).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }))[0].hH));
 
             res.json({ teachers: [...teachersWithoutHH, ...teachersWithHH] });
         } catch (error) {
