@@ -483,33 +483,43 @@ class scheduleController {
             const workbook = new ExcelJS.Workbook();
             const worksheet = workbook.addWorksheet('Schedule');
 
-            // Создаем заголовки для дат
-            const dates = schedule.map(scheduleItem => scheduleItem.date);
-            worksheet.addRow(['Номер пары', ...dates]);
+            // Создаем объект для хранения индексов заголовков дат
+            const dateIndices: { [date: string]: number } = {};
+            let columnIndex = 2; // Начинаем с 2, так как первая колонка для номера пары
 
-            // Добавление данных
-            let maxItemsCount = 0;
-            schedule.forEach((scheduleItem) => {
-                maxItemsCount = Math.max(maxItemsCount, scheduleItem.items.length);
+            // Добавляем заголовки для дат
+            schedule.forEach(scheduleItem => {
+                const date = scheduleItem.date.toISOString().split('T')[0];
+                if (!(date in dateIndices)) {
+                    worksheet.getColumn(columnIndex).values = [date];
+                    dateIndices[date] = columnIndex;
+                    columnIndex++;
+                }
             });
 
+            worksheet.getColumn(1).values = ['Номер пары'];
+
+            schedule.forEach(scheduleItem => {
+                scheduleItem.items.sort((a, b) => a.number - b.number);
+            });
+
+            // Добавление данных
+            const maxItemsCount = Math.max(...schedule.map(scheduleItem => scheduleItem.items.length));
             for (let i = 0; i < maxItemsCount; i++) {
                 const rowData = [(i + 1).toString()];
-                schedule.forEach((scheduleItem) => {
-                    const item = scheduleItem.items[i];
+                schedule.forEach(scheduleItem => {
+                    const item = scheduleItem.items.find(item => item.number === i + 1);
                     if (item) {
+                        const date = scheduleItem.date.toISOString().split('T')[0];
+                        const columnIndex = dateIndices[date];
                         const disciplineName = (item.discipline as any).name;
                         const teacherSurname = (item.teacher as any).surname;
-                        const typeParas = (item.type as any).surname;
-                        rowData.push(`${disciplineName}\n${teacherSurname}\n${typeParas}`);
-                    } else {
-                        rowData.push('');
+                        rowData[columnIndex] = `${disciplineName}\n${teacherSurname}`;
                     }
                 });
                 worksheet.addRow(rowData);
             }
 
-            // Генерация файла Excel и отправка его клиенту
             res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
             res.setHeader('Content-Disposition', 'attachment; filename=schedule.xlsx');
 
