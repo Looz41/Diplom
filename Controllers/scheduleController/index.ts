@@ -147,11 +147,13 @@ class scheduleController {
             const teachersIds = items.map((item: ScheduleItem) => item.teacher);
             const teachers = await Teachers.find({ _id: { $in: teachersIds } });
 
+
             for (const teacher of teachers) {
-                if (teacher.hH !== undefined && teacher.hH !== null) {
-                    teacher.hH += 2;
+                let hH = teacher.burden.filter(e => e.mounth.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) === new Date(date).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }))[0].hH
+                if (hH !== undefined && hH !== null) {
+                    hH += 2;
                 } else {
-                    teacher.hH = 2;
+                    hH = 2;
                 }
                 await teacher.save();
             }
@@ -487,7 +489,7 @@ class scheduleController {
             // Добавляем заголовки столбцов
             worksheet.columns = [
                 { header: 'Дата', key: 'date', width: 15 },
-                { header: 'Номер пары', key: 'number', width: 10 },
+                { header: 'Номер пары', key: 'number', width: 30 },
                 { header: 'Группа', key: 'groupName', width: 20 },
                 { header: 'Предмет', key: 'disciplineName', width: 30 },
                 { header: 'Преподаватель', key: 'teacherSurname', width: 30 },
