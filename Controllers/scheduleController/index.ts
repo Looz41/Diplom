@@ -503,7 +503,7 @@ class scheduleController {
                         number: item.number,
                         groupName: (entry.group as any).name,
                         disciplineName: (item.discipline as any).name,
-                        teacherSurname: `${(item.teacher as any).surname} ${(item.teacher as any).name.slice(0,1)} ${(item.teacher as any).patronymic.slice(0,1)}`,
+                        teacherSurname: `${(item.teacher as any).surname} ${(item.teacher as any).name ? (item.teacher as any).name.slice(0, 1) : ''} ${(item.teacher as any).patronymic ? (item.teacher as any).patronymic.slice(0, 1) : ''}`,
                         typeName: (item.type as any).name,
                         audithoriaName: (item.audithoria as any).name,
                     });
