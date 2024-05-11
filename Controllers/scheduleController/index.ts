@@ -193,8 +193,6 @@ class scheduleController {
  *                 schedule:
  *                   type: array
  *                   description: Расписание.
- *                   items:
- *                     $ref: '#/components/schemas/Schedule'
  *       '404':
  *         description: Расписание не найдено.
  *         content:
@@ -229,13 +227,13 @@ class scheduleController {
             }
 
             if (typeof req.query.group === 'string') {
-                query["items.group"] = req.query.group;
+                query["group"] = req.query.group;
             }
 
             const schedule = await Schedule.find(query)
                 .populate('group', 'name')
                 .populate('items.discipline', 'name')
-                .populate('items.teacher', 'name')
+                .populate('items.teacher')
                 .populate('items.audithoria', 'name')
                 .populate('items.type', 'name')
                 .exec();
@@ -244,10 +242,8 @@ class scheduleController {
                 return res.status(404).json({ message: "Расписание не найдено" });
             }
 
-            // Возвращаем найденное расписание
             res.status(200).json({ schedule });
         } catch (error) {
-            // В случае ошибки возвращаем соответствующий статус и сообщение об ошибке
             console.error('Ошибка:', error);
             res.status(500).json({ message: 'Ошибка сервера' });
         }
