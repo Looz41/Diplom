@@ -376,64 +376,64 @@ class scheduleController {
     }
 
     /**
-* Получение расписания
-* @swagger
-* /schedule/getExcel:
-*   get:
-*     summary: Получить расписание
-*     description: Возвращает расписание. Если параметры не указаны, возвращает полное расписание.
-*     tags: [schedule]
-*     security:
-*       - bearerAuth: []
-*     parameters:
-*       - in: query
-*         name: date
-*         schema:
-*           type: string
-*           format: date
-*         description: Дата для фильтрации расписания в формате YYYY-MM-DD.
-*       - in: query
-*         name: teacher
-*         schema:
-*           type: string
-*         description: ID преподавателя для фильтрации расписания.
-*       - in: query
-*         name: group
-*         schema:
-*           type: string
-*         description: ID группы для фильтрации расписания.
-*     responses:
-*       '200':
-*         description: Успешное получение расписания.
-*         content:
-*           application/json:
-*             schema:
-*               type: object
-*               properties:
-*                 schedule:
-*                   type: array
-*                   description: Расписание.
-*       '404':
-*         description: Расписание не найдено.
-*         content:
-*           application/json:
-*             schema:
-*               type: object
-*               properties:
-*                 message:
-*                   type: string
-*                   description: Сообщение об отсутствии расписания.
-*       '500':
-*         description: Внутренняя ошибка сервера.
-*         content:
-*           application/json:
-*             schema:
-*               type: object
-*               properties:
-*                 message:
-*                   type: string
-*                   description: Сообщение об ошибке.
-*/
+    * Получение расписания
+    * @swagger
+    * /schedule/getExcel:
+    *   get:
+    *     summary: Получить расписание
+    *     description: Возвращает расписание. Если параметры не указаны, возвращает полное расписание.
+    *     tags: [schedule]
+    *     security:
+    *       - bearerAuth: []
+    *     parameters:
+    *       - in: query
+    *         name: date
+    *         schema:
+    *           type: string
+    *           format: date
+    *         description: Дата для фильтрации расписания в формате YYYY-MM-DD.
+    *       - in: query
+    *         name: teacher
+    *         schema:
+    *           type: string
+    *         description: ID преподавателя для фильтрации расписания.
+    *       - in: query
+    *         name: group
+    *         schema:
+    *           type: string
+    *         description: ID группы для фильтрации расписания.
+    *     responses:
+    *       '200':
+    *         description: Успешное получение расписания.
+    *         content:
+    *           application/json:
+    *             schema:
+    *               type: object
+    *               properties:
+    *                 schedule:
+    *                   type: array
+    *                   description: Расписание.
+    *       '404':
+    *         description: Расписание не найдено.
+    *         content:
+    *           application/json:
+    *             schema:
+    *               type: object
+    *               properties:
+    *                 message:
+    *                   type: string
+    *                   description: Сообщение об отсутствии расписания.
+    *       '500':
+    *         description: Внутренняя ошибка сервера.
+    *         content:
+    *           application/json:
+    *             schema:
+    *               type: object
+    *               properties:
+    *                 message:
+    *                   type: string
+    *                   description: Сообщение об ошибке.
+    */
     async getScheduleAsExcel(req: Request, res: Response) {
         try {
             let query: any = {};
@@ -508,11 +508,11 @@ class scheduleController {
                     groupSchedule.forEach(scheduleItem => {
                         const rowData = [(scheduleItem.items[0].number).toString()]; // Номер пары
                         uniqueDates.forEach(date => {
-                            const matchingItem = scheduleItem.items.find(item => item.date.toISOString().split('T')[0] === date);
+                            const matchingItem = scheduleItem.items.find(item => item && item.date && item.date.toISOString().split('T')[0] === date);
                             if (matchingItem) {
-                                const disciplineName = matchingItem.discipline.name;
-                                const teacherSurname = matchingItem.teacher.surname;
-                                const typeName = matchingItem.type.name;
+                                const disciplineName = matchingItem.discipline && matchingItem.discipline.name;
+                                const teacherSurname = matchingItem.teacher && matchingItem.teacher.surname;
+                                const typeName = matchingItem.type && matchingItem.type.name;
                                 rowData.push(`${disciplineName}\n${teacherSurname}\n${typeName}`);
                             } else {
                                 rowData.push('');
