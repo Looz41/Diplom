@@ -435,8 +435,91 @@ class scheduleController {
     *                   description: Сообщение об ошибке.
     */
     async getScheduleAsExcel(req: Request, res: Response) {
-       
+        try {
+            let query: any = {};
 
+            if (typeof req.query.date === 'string') {
+                query.date = req.query.date;
+            }
+
+            if (typeof req.query.teacher === 'string' && isValidObjectId(req.query.teacher)) {
+                query["items.teacher"] = req.query.teacher;
+            }
+
+            if (typeof req.query.group === 'string' && isValidObjectId(req.query.group)) {
+                query["group"] = req.query.group;
+            }
+
+            const schedule = await Schedule.find(query)
+                .populate({
+                    path: 'group',
+                    select: 'name'
+                })
+                .populate({
+                    path: 'items.discipline',
+                    model: Disciplines, // Проверьте, что название модели правильное
+                    select: 'name'
+                })
+                .populate({
+                    path: 'items.teacher',
+                    model: Teachers, // Проверьте, что название модели правильное
+                    select: 'surname'
+                })
+                .populate({
+                    path: 'items.audithoria',
+                    model: Audithories, // Проверьте, что название модели правильное
+                    select: 'name'
+                })
+                .populate({
+                    path: 'items.type',
+                    model: Types, // Проверьте, что название модели правильное
+                    select: 'name'
+                })
+                .exec();
+
+            if (!schedule || schedule.length === 0) {
+                return res.status(404).json({ message: "Расписание не найдено" });
+            }
+
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('Schedule');
+
+            // Добавляем заголовки столбцов
+            worksheet.columns = [
+                { header: 'Дата', key: 'date', width: 15 },
+                { header: 'Группа', key: 'groupName', width: 20 },
+                { header: 'Предмет', key: 'disciplineName', width: 30 },
+                { header: 'Преподаватель', key: 'teacherSurname', width: 30 },
+                { header: 'Тип', key: 'typeName', width: 15 },
+                { header: 'Аудитория', key: 'audithoriaName', width: 15 },
+                { header: 'Номер', key: 'number', width: 10 },
+            ];
+
+            // Заполняем таблицу данными из запроса к базе данных
+            schedule.forEach(entry => {
+                entry.items.forEach(item => {
+                    worksheet.addRow({
+                        date: entry.date.toISOString().split('T')[0],
+                        groupName: (entry.group as any).name,
+                        disciplineName: (item.discipline as any).name, // Здесь использовано имя из поля name дисциплины
+                        teacherSurname: (item.teacher as any).surname, // Здесь использована фамилия из поля surname преподавателя
+                        typeName: (item.type as any).name, // Здесь использовано имя из поля name типа
+                        audithoriaName: (item.audithoria as any).name, // Здесь использовано имя из поля name аудитории
+                        number: item.number,
+                    });
+                });
+            });
+
+            // Устанавливаем тип контента и отправляем файл
+            res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            res.setHeader('Content-Disposition', 'attachment; filename=schedule.xlsx');
+            await workbook.xlsx.write(res);
+            res.end();
+
+        } catch (error) {
+            console.error('Ошибка:', error);
+            res.status(500).json({ message: 'Ошибка сервера' });
+        }
     }
 }
 
