@@ -457,22 +457,22 @@ class scheduleController {
                 })
                 .populate({
                     path: 'items.discipline',
-                    model: Disciplines, // Проверьте, что название модели правильное
+                    model: 'Disciplines',
                     select: 'name'
                 })
                 .populate({
                     path: 'items.teacher',
-                    model: Teachers, // Проверьте, что название модели правильное
+                    model: 'Teachers',
                     select: 'surname'
                 })
                 .populate({
                     path: 'items.audithoria',
-                    model: Audithories, // Проверьте, что название модели правильное
+                    model: 'Audithories',
                     select: 'name'
                 })
                 .populate({
                     path: 'items.type',
-                    model: Types, // Проверьте, что название модели правильное
+                    model: 'Types',
                     select: 'name'
                 })
                 .exec();
@@ -481,41 +481,79 @@ class scheduleController {
                 return res.status(404).json({ message: "Расписание не найдено" });
             }
 
+            // Создание объекта для группировки расписания по дате и группе
+            const groupedSchedule: { [date: string]: { [groupName: string]: any[] } } = {};
+
+            // Заполнение объекта groupedSchedule
+            schedule.forEach(scheduleItem => {
+                const date = scheduleItem.date.toISOString().split('T')[0];
+                const groupName = (scheduleItem.group as any).name;
+
+                if (!(date in groupedSchedule)) {
+                    groupedSchedule[date] = {};
+                }
+
+                if (!(groupName in groupedSchedule[date])) {
+                    groupedSchedule[date][groupName] = [];
+                }
+
+                groupedSchedule[date][groupName].push(scheduleItem);
+            });
+
+            // Создание массива уникальных дат
+            const uniqueDates = Object.keys(groupedSchedule);
+
+            // Создание нового экземпляра Workbook и Worksheet
             const workbook = new ExcelJS.Workbook();
             const worksheet = workbook.addWorksheet('Schedule');
 
-            // Добавляем заголовки столбцов
-            worksheet.columns = [
-                { header: 'Дата', key: 'date', width: 15 },
-                { header: 'Группа', key: 'groupName', width: 20 },
-                { header: 'Предмет', key: 'disciplineName', width: 30 },
-                { header: 'Преподаватель', key: 'teacherSurname', width: 30 },
-                { header: 'Тип', key: 'typeName', width: 15 },
-                { header: 'Аудитория', key: 'audithoriaName', width: 15 },
-                { header: 'Номер', key: 'number', width: 10 },
-            ];
+            // Добавление заголовков для дат
+            worksheet.addRow(['', ...uniqueDates]);
 
-            // Заполняем таблицу данными из запроса к базе данных
-            schedule.forEach(entry => {
-                entry.items.forEach(item => {
-                    worksheet.addRow({
-                        date: entry.date.toISOString().split('T')[0],
-                        groupName: (entry.group as any).name,
-                        disciplineName: (item.discipline as any).name, // Здесь использовано имя из поля name дисциплины
-                        teacherSurname: (item.teacher as any).surname, // Здесь использована фамилия из поля surname преподавателя
-                        typeName: (item.type as any).name, // Здесь использовано имя из поля name типа
-                        audithoriaName: (item.audithoria as any).name, // Здесь использовано имя из поля name аудитории
-                        number: item.number,
+            // Добавление данных по группам
+            for (const groupName in groupedSchedule) {
+                if (groupedSchedule.hasOwnProperty(groupName)) {
+                    const groupData = groupedSchedule[groupName];
+
+                    // Добавление заголовка для группы
+                    worksheet.addRow([groupName]);
+
+                    // Инициализация массива данных для строки в таблице Excel
+                    const rowData: any[] = [];
+
+                    // Для каждой даты
+                    uniqueDates.forEach(date => {
+                        const dateData = groupData[date];
+                        const scheduleNumbers: string[] = [];
+
+                        // Для каждой записи в расписании для данной группы и даты
+                        dateData.forEach(scheduleItem => {
+                            const scheduleNumber = scheduleItem.items[0].number.toString();
+                            if (!scheduleNumbers.includes(scheduleNumber)) {
+                                scheduleNumbers.push(scheduleNumber);
+                            }
+                        });
+
+                        // Добавление строки с номерами пар в массив данных
+                        rowData.push(scheduleNumbers.join('\n'));
                     });
-                });
+
+                    // Добавление строки с номерами пар в таблицу Excel
+                    worksheet.addRow(rowData);
+                    worksheet.addRow([]); // Пустая строка для разделения групп
+                }
+            }
+
+            // Устанавливаем ширину столбцов
+            worksheet.columns.forEach(column => {
+                column.width = 15; // Установите ширину столбца по вашему усмотрению
             });
 
-            // Устанавливаем тип контента и отправляем файл
+            // Генерация файла Excel и отправка его клиенту
             res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
             res.setHeader('Content-Disposition', 'attachment; filename=schedule.xlsx');
             await workbook.xlsx.write(res);
             res.end();
-
         } catch (error) {
             console.error('Ошибка:', error);
             res.status(500).json({ message: 'Ошибка сервера' });
