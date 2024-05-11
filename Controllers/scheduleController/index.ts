@@ -9,18 +9,18 @@ import {
     Types
 } from "../../models/index";
 
-interface Query {
-    date?: string;
-    teacher?: string;
-    group?: string;
-}
-
 interface ScheduleItem {
     discipline: string;
     teacher: string;
     type: string;
     audithoria: string;
     number: number;
+}
+
+interface Query {
+    date?: string;
+    teacher?: string;
+    group?: string;
 }
 
 interface ScheduleItemEx {
