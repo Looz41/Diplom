@@ -528,18 +528,25 @@ class scheduleController {
                     // Для каждой даты
                     uniqueDates.forEach(date => {
                         const dateData = groupData[date];
-                        const scheduleNumbers: string[] = [];
 
-                        // Для каждой записи в расписании для данной группы и даты
-                        dateData.forEach(scheduleItem => {
-                            const scheduleNumber = scheduleItem.items[0].number.toString();
-                            if (!scheduleNumbers.includes(scheduleNumber)) {
-                                scheduleNumbers.push(scheduleNumber);
-                            }
-                        });
+                        // Проверяем, определена ли переменная dateData
+                        if (dateData) {
+                            const scheduleNumbers: string[] = [];
 
-                        // Добавление строки с номерами пар в массив данных
-                        rowData.push(scheduleNumbers.join('\n'));
+                            // Для каждой записи в расписании для данной группы и даты
+                            dateData.forEach(scheduleItem => {
+                                const scheduleNumber = scheduleItem.items[0].number.toString();
+                                if (!scheduleNumbers.includes(scheduleNumber)) {
+                                    scheduleNumbers.push(scheduleNumber);
+                                }
+                            });
+
+                            // Добавление строки с номерами пар в массив данных
+                            rowData.push(scheduleNumbers.join('\n'));
+                        } else {
+                            // Если dateData не определена, добавляем пустую строку
+                            rowData.push('');
+                        }
                     });
 
                     // Добавление строки с номерами пар в таблицу Excel
