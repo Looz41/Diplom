@@ -166,7 +166,7 @@ class scheduleController {
      * Редактирование расписания
      * @swagger
      * /schedule/edit:
-     *   put:
+     *   post:
      *     summary: Редактирование расписания
      *     description: Обновляет существующее расписание.
      *     tags: [schedule]

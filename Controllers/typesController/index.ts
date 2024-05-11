@@ -113,7 +113,7 @@ class typesController {
  * Редактирование типа
  * @swagger
  * /types/edit:
- *   put:
+ *   post:
  *     summary: Редактирование типа
  *     description: Обновляет информацию о существующем типе.
  *     tags: [types]

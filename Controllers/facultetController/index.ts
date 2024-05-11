@@ -143,7 +143,7 @@ class facultetController {
      * Редактирование факультета
      * @swagger
      * /facultet/edit:
-     *   put:
+     *   post:
      *     summary: Редактирование факультета
      *     tags: [facultet]
      *     security:

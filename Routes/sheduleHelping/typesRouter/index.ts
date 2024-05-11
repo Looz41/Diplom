@@ -7,7 +7,7 @@ const controller = new typesController();
 
 typesRouter.post('/add', roleMiddleware(['ADMIN']), controller.addType);
 typesRouter.get('/get', roleMiddleware(['USER', "ADMIN"]), controller.getTypes);
-typesRouter.get('/edit', roleMiddleware(["ADMIN"]), controller.editType);
+typesRouter.post('/edit', roleMiddleware(["ADMIN"]), controller.editType);
 
 
 export { typesRouter };

@@ -127,7 +127,7 @@ class teachersController {
      * Редактирование преподавателя
      * @swagger
      * /teacher/edit:
-     *   put:
+     *   post:
      *     summary: Редактирование преподавателя
      *     description: Обновляет информацию о существующем преподавателе.
      *     tags: [teachers]

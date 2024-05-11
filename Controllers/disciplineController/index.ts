@@ -141,7 +141,7 @@ class disciplineController {
  * Редактирование дисциплины
  * @swagger
  * /discipline/edit:
- *   put:
+ *   post:
  *     summary: Редактирование дисциплины
  *     tags:
  *       - disciplines

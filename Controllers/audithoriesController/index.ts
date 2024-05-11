@@ -113,7 +113,7 @@ class audithoriesController {
      * Редактирование аудитории
      * @swagger
      * /audithories/edit:
-     *   put:
+     *   post:
      *     summary: Редактировать аудиторию
      *     tags: [audithories]
      *     security:
