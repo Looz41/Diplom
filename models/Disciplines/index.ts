@@ -21,9 +21,16 @@ const DisciplineSchema = new mongoose.Schema({
         type: Number,
         required: true,
     },
-    hH: {
-        type: Number,
-    }
+    burden: [
+        {
+            hH: {
+                type: Number,
+            },
+            mounth: {
+                type: Date,
+            }
+        }
+    ]
 })
 
 export default model("Disciplines", DisciplineSchema)

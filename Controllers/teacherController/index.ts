@@ -263,11 +263,11 @@ class teachersController {
      */
     async getTeacherByDiscipline(req: Request, res: Response) {
         try {
-            const { id, date } = req.query
-
-            if (!req.query || !id) {
+            if (!req.query || !req.query.id) {
                 return res.status(400).json({ message: 'Идентификатор дисциплины не указан' });
             }
+
+            const { id, date } = req.query;
 
             const discipline = await Disciplines.findOne({ _id: id })
                 .populate('teachers')
@@ -277,12 +277,18 @@ class teachersController {
                 return res.status(404).json({ message: 'Дисциплина не найдена' });
             }
 
-            let teachers = discipline.teachers;
+            const teachers: (typeof Teachers & { burden: { hH?: number; mounth?: Date; }[] })[] = (discipline.teachers as unknown) as (typeof Teachers & { burden: { hH?: number; mounth?: Date; }[] })[];
 
-            const teachersWithHH = teachers.filter((teacher: any) => teacher.hH !== undefined && teacher.burden.filter(e => e.mounth.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) === new Date((date as string)).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }))[0].hH !== 0);
-            const teachersWithoutHH = teachers.filter((teacher: any) => teacher.hH === undefined || teacher.burden.filter(e => e.mounth.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) === new Date((date as string)).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }))[0].hH === 0);
+            const teachersWithHH = teachers.filter(teacher => {
+                const hH = teacher.burden.filter(e => e.mounth.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) === new Date(date as string).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }))[0].hH;
+                hH !== undefined && hH !== 0;
+            });
+            const teachersWithoutHH = teachers.filter(teacher => {
+                const hH = teacher.burden.filter(e => e.mounth.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) === new Date(date as string).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }))[0].hH;
+                hH === undefined || hH === 0;
+            });
 
-            teachersWithHH.sort((a: any, b: any) => (b.aH / b.burden.filter(e => e.mounth.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) === new Date((date as string)).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }))[0].hH) - (a.aH / a.b.burden.filter(e => e.mounth.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) === new Date((date as string)).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }))[0].hH));
+            teachersWithHH.sort((a: any, b: any) => (b.aH / b.hH) - (a.aH / a.hH));
 
             res.json({ teachers: [...teachersWithoutHH, ...teachersWithHH] });
         } catch (error) {
