@@ -440,8 +440,6 @@ class scheduleController {
     *                   type: string
     *                   description: Сообщение об ошибке.
     */
-
-
     async getSheduleExcel(req, res) {
         try {
             let query: any = {};
