@@ -377,7 +377,7 @@ class scheduleController {
     /**
 * Получение расписания
 * @swagger
-* /schedule/get:
+* /schedule/getExcel:
 *   get:
 *     summary: Получить расписание
 *     description: Возвращает расписание. Если параметры не указаны, возвращает полное расписание.
