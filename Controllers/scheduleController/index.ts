@@ -515,6 +515,10 @@ class scheduleController {
                 if (groupedSchedule.hasOwnProperty(groupName)) {
                     const groupData = groupedSchedule[groupName];
 
+                    if (!groupData) {
+                        continue; // Пропускаем текущую итерацию, если groupData === undefined
+                    }
+
                     // Добавление заголовка для группы
                     worksheet.addRow([groupName]);
 
