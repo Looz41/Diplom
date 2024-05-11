@@ -1,6 +1,13 @@
 import { Request, Response } from "express"
+import ExcelJS from 'exceljs';
 
-import { Disciplines, Schedule, Teachers } from "../../models/index";
+import {
+    Disciplines,
+    Schedule,
+    Teachers,
+    Audithories,
+    Types
+} from "../../models/index";
 
 interface ScheduleItem {
     discipline: string;
@@ -361,6 +368,151 @@ class scheduleController {
             }
 
             res.status(200).json({ schedule });
+        } catch (error) {
+            console.error('Ошибка:', error);
+            res.status(500).json({ message: 'Ошибка сервера' });
+        }
+    }
+
+    /**
+* Получение расписания
+* @swagger
+* /schedule/get:
+*   get:
+*     summary: Получить расписание
+*     description: Возвращает расписание. Если параметры не указаны, возвращает полное расписание.
+*     tags: [schedule]
+*     security:
+*       - bearerAuth: []
+*     parameters:
+*       - in: query
+*         name: date
+*         schema:
+*           type: string
+*           format: date
+*         description: Дата для фильтрации расписания в формате YYYY-MM-DD.
+*       - in: query
+*         name: teacher
+*         schema:
+*           type: string
+*         description: ID преподавателя для фильтрации расписания.
+*       - in: query
+*         name: group
+*         schema:
+*           type: string
+*         description: ID группы для фильтрации расписания.
+*     responses:
+*       '200':
+*         description: Успешное получение расписания.
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 schedule:
+*                   type: array
+*                   description: Расписание.
+*       '404':
+*         description: Расписание не найдено.
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 message:
+*                   type: string
+*                   description: Сообщение об отсутствии расписания.
+*       '500':
+*         description: Внутренняя ошибка сервера.
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 message:
+*                   type: string
+*                   description: Сообщение об ошибке.
+*/
+    async getScheduleAsExcel(req: Request, res: Response) {
+        try {
+            let query: any = {};
+
+            if (typeof req.query.date === 'string') {
+                query.date = req.query.date;
+            }
+
+            if (typeof req.query.teacher === 'string') {
+                query["items.teacher"] = req.query.teacher;
+            }
+
+            if (typeof req.query.group === 'string') {
+                query["group"] = req.query.group;
+            }
+
+            const schedule = await Schedule.find(query)
+                .populate({
+                    path: 'group',
+                    select: 'name'
+                })
+                .populate({
+                    path: 'items.discipline',
+                    model: Disciplines, // Используем модель Disciplines вместо 'Disciplines'
+                    select: 'name'
+                })
+                .populate({
+                    path: 'items.teacher',
+                    model: Teachers, // Используем модель Teachers вместо 'Teachers'
+                    select: 'surname' // Изменено на свойство, присутствующее в модели Teachers
+                })
+                .populate({
+                    path: 'items.audithoria',
+                    model: Audithories, // Используем модель Audithories вместо 'Audithories'
+                    select: 'name'
+                })
+                .populate({
+                    path: 'items.type',
+                    model: Types, // Используем модель Types вместо 'Types'
+                    select: 'name'
+                })
+                .exec();
+
+            if (!schedule || schedule.length === 0) {
+                return res.status(404).json({ message: "Расписание не найдено" });
+            }
+
+            const workbook = new ExcelJS.Workbook();
+            const worksheet = workbook.addWorksheet('Schedule');
+
+            // Добавление заголовков
+            worksheet.addRow(['Дата', 'Группа', 'Дисциплина', 'Преподаватель', 'Аудитория', 'Тип', 'Номер']);
+
+            // Добавление данных
+            schedule.forEach((scheduleItem) => {
+                scheduleItem.items.forEach((item) => {
+                    const disciplineName = (item.discipline as any).name;
+                    const teacherSurname = (item.teacher as any).surname;
+                    const audithoriaName = (item.audithoria as any).name;
+                    const typeName = (item.type as any).name;
+
+                    worksheet.addRow([
+                        scheduleItem.date,
+                        (scheduleItem.group as any).name,
+                        disciplineName,
+                        teacherSurname,
+                        audithoriaName,
+                        typeName,
+                        item.number
+                    ]);
+                });
+            });
+
+            // Генерация файла Excel и отправка его клиенту
+            res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            res.setHeader('Content-Disposition', 'attachment; filename=schedule.xlsx');
+
+            await workbook.xlsx.write(res);
+
+            res.end();
         } catch (error) {
             console.error('Ошибка:', error);
             res.status(500).json({ message: 'Ошибка сервера' });
