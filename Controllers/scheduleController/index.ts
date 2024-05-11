@@ -487,7 +487,7 @@ class scheduleController {
             // Добавляем заголовки столбцов
             worksheet.columns = [
                 { header: 'Дата', key: 'date', width: 15 },
-                { header: 'Номер', key: 'number', width: 10 },
+                { header: 'Номер пары', key: 'number', width: 10 },
                 { header: 'Группа', key: 'groupName', width: 20 },
                 { header: 'Предмет', key: 'disciplineName', width: 30 },
                 { header: 'Преподаватель', key: 'teacherSurname', width: 30 },
@@ -503,7 +503,7 @@ class scheduleController {
                         number: item.number,
                         groupName: (entry.group as any).name,
                         disciplineName: (item.discipline as any).name,
-                        teacherSurname: (item.teacher as any).surname,
+                        teacherSurname: `${(item.teacher as any).surname} ${(item.teacher as any).name.slice(0,1)} ${(item.teacher as any).patronymic.slice(0,1)}`,
                         typeName: (item.type as any).name,
                         audithoriaName: (item.audithoria as any).name,
                     });
