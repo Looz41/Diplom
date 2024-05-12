@@ -281,7 +281,7 @@ class teachersController {
             }
 
             if (!mongoose.Types.ObjectId.isValid(id.toString())) {
-                return res.status(400).json({ message: 'Неверный формат id' })
+                return res.status(400).json({ message: 'Неверный формат id' });
             }
 
             const discipline = await Disciplines.findOne({ _id: id })
@@ -299,21 +299,7 @@ class teachersController {
                 return filtered.length > 0 && filtered[0].hH !== undefined && filtered[0].hH !== 0;
             });
 
-            const teachersWithoutHH = teachers.filter(teacher => {
-                const filtered = teacher.burden.filter(e => e.mounth?.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) === new Date(date as string).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }));
-                return filtered.length === 0 || filtered[0].hH === undefined || filtered[0].hH === 0;
-            });
-
-            const teachersWithHHFiltered = teachersWithHH.filter((teacher) => {
-                const filtered = teacher.burden.filter(
-                    (e) =>
-                        e.mounth?.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) ===
-                        new Date(date as string).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' })
-                );
-                return filtered.length > 0 && filtered[0].hH !== undefined && filtered[0].hH !== 0;
-            });
-
-            res.json({ teachers: [...teachersWithoutHH, ...teachersWithHHFiltered] });
+            res.json({ teachers: teachersWithHH });
         } catch (error) {
             console.error(error);
             res.status(500).json({ message: 'Ошибка сервера' });
