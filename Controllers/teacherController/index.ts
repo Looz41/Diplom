@@ -269,6 +269,7 @@ class teachersController {
      *         schema:
      *           type: string
      *           format: date
+     *         required: true
      *         description: Дата для фильтрации расписания в формате YYYY-MM-DD.
      *     responses:
      *       '200':
