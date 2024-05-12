@@ -149,7 +149,8 @@ class scheduleController {
 
 
             for (const teacher of teachers) {
-                let hH = teacher.burden.filter(e => e.mounth.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) === new Date(date).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }))[0].hH
+                let hH = teacher.burden.filter(e => 
+                    e.mounth?.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) === new Date(date).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }))[0].hH
                 if (hH !== undefined && hH !== null) {
                     hH += 2;
                 } else {
