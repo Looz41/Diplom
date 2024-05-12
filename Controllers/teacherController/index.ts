@@ -8,6 +8,18 @@ import mongoose from "mongoose";
 
 const { validationResult } = require('express-validator')
 
+const getTeachersByDate = (teachers: (typeof Teachers & { aH: number, burden: { hH?: number; mounth?: Date; }[] })[], date: Date): (typeof Teachers & { aH: number, burden: { hH?: number; mounth?: Date; }[] })[] => {
+    const targetDate = new Date(date);
+    return teachers.filter(teacher => {
+        const filtered = teacher.burden.filter(burden => {
+            const burdenDate = new Date(burden.mounth);
+            return burdenDate.getMonth() === targetDate.getMonth() && burdenDate.getFullYear() === targetDate.getFullYear();
+        });
+        return filtered.length === 0 || filtered.every(burden => burden.hH === undefined || burden.hH === 0);
+    });
+}
+
+
 class teachersController {
 
 
@@ -264,30 +276,35 @@ class teachersController {
      */
     async getTeacherByDiscipline(req: Request, res: Response) {
         try {
-            if (!req.query || !req.query.id) {
+            const { id, date } = req.query;
+
+            if (!id) {
                 return res.status(400).json({ message: 'Идентификатор дисциплины не указан' });
             }
 
-            const { id } = req.query;
+            if (!date) {
+                return res.status(400).json({ message: 'Дата не указана' });
+            }
 
-            const discipline = await Disciplines.findOne({ _id: id })
-                .populate('teachers')
-                .exec();
+            const disciplineId = id.toString();
+            if (!mongoose.Types.ObjectId.isValid(disciplineId)) {
+                return res.status(400).json({ message: 'Неверный формат id' });
+            }
+
+            const discipline = await Disciplines.findOne({ _id: disciplineId }).populate('teachers').exec();
+
             if (!discipline) {
                 return res.status(404).json({ message: 'Дисциплина не найдена' });
             }
 
-            let teachers = discipline.teachers;
+            const teachers: (typeof Teachers & { aH: number, burden: { hH?: number; mounth?: Date; }[] })[] = (discipline.teachers as unknown) as (typeof Teachers & { aH: number, burden: { hH?: number; mounth?: Date; }[] })[];
 
-            const teachersWithHH = teachers.filter((teacher: any) => teacher.hH !== undefined && teacher.hH !== 0);
-            const teachersWithoutHH = teachers.filter((teacher: any) => teacher.hH === undefined || teacher.hH === 0);
+            const teachersWithHH = getTeachersByDate(teachers, new Date(date.toString()));
 
-            teachersWithHH.sort((a: any, b: any) => (b.aH / b.hH) - (a.aH / a.hH));
-
-            res.json({ teachers: [...teachersWithoutHH, ...teachersWithHH] });
+            res.json({ teachers: teachersWithHH });
         } catch (error) {
             console.error(error);
-            res.status(500).json({ message: 'Ошибка сервера' });
+            res.status(500).json({ message: 'Ошибка сервера', error: error.message });
         }
     }
 
