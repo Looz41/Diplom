@@ -244,9 +244,9 @@ class teachersController {
      *       - in: query
      *         name: date
      *         schema:
-     *           type: Date
-     *         required: true
-     *         description: Дата в формате YYYY-MM-DD
+     *           type: string
+     *           format: date
+     *         description: Дата для фильтрации расписания в формате YYYY-MM-DD.
      *     responses:
      *       '200':
      *         description: Успешный запрос. Возвращены преподаватели с учебной нагрузкой и без неё.
