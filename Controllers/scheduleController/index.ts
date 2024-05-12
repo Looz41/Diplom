@@ -155,7 +155,7 @@ class scheduleController {
         
                 if (!burdenItem || burdenItem.hH === undefined || burdenItem.hH === null) {
                     teacher.burden.push({
-                        mounth: new Date(date).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }),
+                        mounth: date,
                         hH: 2
                     });
                 } else {
