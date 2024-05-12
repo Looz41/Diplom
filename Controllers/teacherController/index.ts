@@ -280,7 +280,7 @@ class teachersController {
                 return res.status(400).json({ message: 'Неверный формат id' })
             }
 
-            const discipline = await Disciplines.findOne({ _id: id })
+            const discipline = await Disciplines.findOne({ _id: id, date })
                 .populate('teachers')
                 .exec();
 
