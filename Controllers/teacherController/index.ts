@@ -277,19 +277,23 @@ class teachersController {
                 return res.status(404).json({ message: 'Дисциплина не найдена' });
             }
 
-            const teachers: (typeof Teachers & { burden: { hH?: number; mounth?: Date; }[] })[] = (discipline.teachers as unknown) as (typeof Teachers & { burden: { hH?: number; mounth?: Date; }[] })[];
+            const teachers: (typeof Teachers & { aH: number, burden: { hH?: number; mounth?: Date; }[] })[] = (discipline.teachers as unknown) as (typeof Teachers & { aH: number, burden: { hH?: number; mounth?: Date; }[] })[];
 
             const teachersWithHH = teachers.filter(teacher => {
                 const filtered = teacher.burden.filter(e => e.mounth?.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) === new Date(date as string).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }));
                 return filtered.length > 0 && filtered[0].hH !== undefined && filtered[0].hH !== 0;
             });
-            
+
             const teachersWithoutHH = teachers.filter(teacher => {
                 const filtered = teacher.burden.filter(e => e.mounth?.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) === new Date(date as string).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }));
                 return filtered.length === 0 || filtered[0].hH === undefined || filtered[0].hH === 0;
             });
 
-            teachersWithHH.sort((a: any, b: any) => (b.aH / b.hH) - (a.aH / a.hH));
+            teachersWithHH.sort((a, b) => {
+                const bHH = b.burden.filter((e: any) => e.mounth?.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) === new Date(date as string).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' })).reduce((acc: any, cur: any) => acc + cur.hH, 0);
+                const aHH = a.burden.reduce((acc: any, cur: any) => acc + cur.hH, 0);
+                return (b.aH / bHH) - (a.aH / aHH);
+            });
 
             res.json({ teachers: [...teachersWithoutHH, ...teachersWithHH] });
         } catch (error) {
