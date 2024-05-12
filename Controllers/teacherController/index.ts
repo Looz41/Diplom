@@ -11,10 +11,12 @@ const { validationResult } = require('express-validator')
 type TeacherWithBurden = typeof Teachers & { aH: number, burden: { hH?: number; mounth?: Date; }[] };
 
 const getTeachersByDate = (teachers: TeacherWithBurden[], date: Date): TeacherWithBurden[] => {
+    console.log('teachers', teachers)
     return teachers.filter(teacher => {
         const filtered = teacher.burden.filter(burden => {
             return burden.mounth?.getMonth() === date.getMonth() && burden.mounth?.getFullYear() === date.getFullYear();
         });
+        console.log('filtered', filtered)
         return filtered.length === 0 || filtered.every(burden => burden.hH === undefined || burden.hH === 0);
     });
 }
@@ -312,7 +314,7 @@ class teachersController {
 
             const teachersWithHH = getTeachersByDate(teachers, dateParam);
 
-            res.json({ teachers: teachersWithHH, data: dateParam});
+            res.json({ teachers: teachersWithHH});
         } catch (error: any) { // Specify type of error
             console.error(error);
             res.status(500).json({ message: 'Ошибка сервера', error: error.message });
