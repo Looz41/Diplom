@@ -302,7 +302,6 @@ class teachersController {
                 return res.status(404).json({ message: 'Дисциплина не найдена' });
             }
 
-            // Ensure that date is of type string or number
             const dateParam = typeof date === 'string' || typeof date === 'number' ? new Date(date.toString()) : undefined;
 
             if (!dateParam) {
@@ -313,7 +312,7 @@ class teachersController {
 
             const teachersWithHH = getTeachersByDate(teachers, dateParam);
 
-            res.json({ teachers: teachersWithHH });
+            res.json({ teachers: teachersWithHH, data: dateParam});
         } catch (error: any) { // Specify type of error
             console.error(error);
             res.status(500).json({ message: 'Ошибка сервера', error: error.message });
