@@ -275,6 +275,10 @@ class teachersController {
             if (!req.query || !id) {
                 return res.status(400).json({ message: 'Идентификатор дисциплины не указан' });
             }
+            
+            if (!date) {
+                return res.status(400).json({ message: 'Дата не указана' });
+            }
 
             if (!mongoose.Types.ObjectId.isValid(id.toString())) {
                 return res.status(400).json({ message: 'Неверный формат id' })
