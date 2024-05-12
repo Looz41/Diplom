@@ -398,7 +398,7 @@ class teachersController {
                     surname: teacher.surname,
                     patronymic: teacher.patronymic,
                     aH: teacher.aH,
-                    hH: teacher.hH,
+                    burden: teacher.burden,
                     disciplines: disciplines
                 };
             }));
