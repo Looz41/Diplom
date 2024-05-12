@@ -294,12 +294,21 @@ class teachersController {
 
             const teachers: (typeof Teachers & { aH: number, burden: { hH?: number; mounth?: Date; }[] })[] = (discipline.teachers as unknown) as (typeof Teachers & { aH: number, burden: { hH?: number; mounth?: Date; }[] })[];
 
-            const teachersWithHH = teachers.filter(teacher => {
+            const teachersWithoutHH = teachers.filter(teacher => {
                 const filtered = teacher.burden.filter(e => e.mounth?.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) === new Date(date as string).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }));
+                return filtered.length === 0 || filtered[0].hH === undefined || filtered[0].hH === 0;
+            });
+
+            const teachersWithHH = teachers.filter(teacher => {
+                const filtered = teacher.burden.map(e => ({
+                    ...e,
+                    mounth: e.mounth?.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' })
+                })).filter(e => e.mounth === new Date(date as string).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }));
+
                 return filtered.length > 0 && filtered[0].hH !== undefined && filtered[0].hH !== 0;
             });
 
-            res.json({ teachers: teachersWithHH });
+            res.json({ teachers: [...teachersWithoutHH, ...teachersWithHH] });
         } catch (error) {
             console.error(error);
             res.status(500).json({ message: 'Ошибка сервера' });
