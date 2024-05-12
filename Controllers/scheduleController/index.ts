@@ -153,7 +153,7 @@ class scheduleController {
                     e.mounth?.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) === new Date(date).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' })
                 );
         
-                if (!burdenItem) {
+                if (!burdenItem || burdenItem.hH === undefined || burdenItem.hH === null) {
                     teacher.burden.push({
                         mounth: new Date(date).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }),
                         hH: 2
