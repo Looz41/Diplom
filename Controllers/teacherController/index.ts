@@ -275,7 +275,7 @@ class teachersController {
             if (!req.query || !id) {
                 return res.status(400).json({ message: 'Идентификатор дисциплины не указан' });
             }
-            
+
             if (!date) {
                 return res.status(400).json({ message: 'Дата не указана' });
             }
@@ -304,13 +304,16 @@ class teachersController {
                 return filtered.length === 0 || filtered[0].hH === undefined || filtered[0].hH === 0;
             });
 
-            teachersWithHH.filter((e) => e.burden.filter((_e) => _e.mounth?.getMonth() === new Date(date.toString()).getMonth())).sort((a, b) => {
-                const bHH = b.burden.filter((e: any) => e.mounth?.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) === new Date(date as string).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' })).reduce((acc: any, cur: any) => acc + cur.hH, 0);
-                const aHH = a.burden.reduce((acc: any, cur: any) => acc + cur.hH, 0);
-                return (b.aH / bHH) - (a.aH / aHH);
+            const teachersWithHHFiltered = teachersWithHH.filter((teacher) => {
+                const filtered = teacher.burden.filter(
+                    (e) =>
+                        e.mounth?.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) ===
+                        new Date(date as string).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' })
+                );
+                return filtered.length > 0 && filtered[0].hH !== undefined && filtered[0].hH !== 0;
             });
 
-            res.json({ teachers: [...teachersWithoutHH, ...teachersWithHH] });
+            res.json({ teachers: [...teachersWithoutHH, ...teachersWithHHFiltered] });
         } catch (error) {
             console.error(error);
             res.status(500).json({ message: 'Ошибка сервера' });
