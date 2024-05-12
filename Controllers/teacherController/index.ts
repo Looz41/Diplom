@@ -275,7 +275,7 @@ class teachersController {
             if (!req.query || !id) {
                 return res.status(400).json({ message: 'Идентификатор дисциплины не указан' });
             }
-
+            
             if (!date) {
                 return res.status(400).json({ message: 'Дата не указана' });
             }
@@ -310,13 +310,7 @@ class teachersController {
                 return (b.aH / bHH) - (a.aH / aHH);
             });
 
-            const filteredTeachersWithHH = teachersWithHH.filter((e) => {
-                e.burden.filter((_e) => {
-                    _e.mounth?.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) === new Date(date as string).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' })
-                })
-            })
-
-            res.json({ teachers: [...teachersWithoutHH, ...filteredTeachersWithHH] });
+            res.json({ teachers: [...teachersWithoutHH, ...teachersWithHH] });
         } catch (error) {
             console.error(error);
             res.status(500).json({ message: 'Ошибка сервера' });
