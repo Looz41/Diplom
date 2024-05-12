@@ -11,13 +11,11 @@ const { validationResult } = require('express-validator')
 type TeacherWithBurden = typeof Teachers & { aH: number, burden: { hH?: number; mounth?: Date; }[] };
 
 const getTeachersByDate = (teachers: TeacherWithBurden[], date: Date): TeacherWithBurden[] => {
-    console.log('teachers', teachers)
     return teachers.filter(teacher => {
         const filtered = teacher.burden.filter(burden => {
             return burden.mounth?.getMonth() === date.getMonth() && burden.mounth?.getFullYear() === date.getFullYear();
         });
-        console.log('filtered', filtered)
-        return filtered.length === 0 || filtered.every(burden => burden.hH === undefined || burden.hH === 0);
+        return filtered.length !== 0 && filtered.some(burden => burden.hH !== undefined && burden.hH !== 0);
     });
 }
 
