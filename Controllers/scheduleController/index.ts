@@ -149,13 +149,19 @@ class scheduleController {
 
 
             for (const teacher of teachers) {
-                let hH = teacher.burden.filter(e =>
-                    e.mounth?.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) === new Date(date).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }))[0].hH
-                if (!hH) {
-                    hH = 2;
+                const burdenItem = teacher.burden.find(e =>
+                    e.mounth?.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) === new Date(date).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' })
+                );
+        
+                if (!burdenItem) {
+                    teacher.burden.push({
+                        mounth: new Date(date).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }),
+                        hH: 2
+                    });
                 } else {
-                    hH += 2;
+                    burdenItem.hH += 2;
                 }
+        
                 await teacher.save();
             }
 
