@@ -389,7 +389,7 @@ class teachersController {
         try {
             const { id: teacherId } = req.query;
 
-            if (!mongoose.Types.ObjectId.isValid(teacherId.toString())) {
+            if (!teacherId || !mongoose.Types.ObjectId.isValid(teacherId.toString())) {
                 return res.status(400).json({ message: 'Неверный формат id' })
             }
 
