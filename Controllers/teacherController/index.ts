@@ -11,14 +11,18 @@ const { validationResult } = require('express-validator')
 type TeacherWithBurden = typeof Teachers & { aH: number, burden: { hH?: number; mounth?: Date; }[] };
 
 const getTeachersByDate = (teachers: TeacherWithBurden[], date: Date): TeacherWithBurden[] => {
-    const targetMonth = date.getMonth() + 1;
+    const targetMonth = date.getMonth();
     const targetYear = date.getFullYear();
 
     return teachers.filter(teacher => {
-        return teacher.burden.some(burden => {
-            if (!burden.mounth) return
-            return burden.mounth.getMonth() === targetMonth && burden.mounth.getFullYear() === targetYear;
+        const filteredBurden = teacher.burden.filter(burden => {
+            if (!burden.mounth) return false;
+            const burdenMonth = burden.mounth.getMonth();
+            const burdenYear = burden.mounth.getFullYear();
+            return burdenMonth === targetMonth && burdenYear === targetYear;
         });
+
+        return filteredBurden.length > 0;
     });
 }
 
