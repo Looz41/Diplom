@@ -297,9 +297,15 @@ class teachersController {
                 return res.status(404).json({ message: 'Дисциплина не найдена' });
             }
 
+            const dateParam = date ? new Date(date.toString()) : undefined;
+
+            if (!dateParam) {
+                return res.status(400).json({ message: 'Дата не указана' });
+            }
+
             const teachers: (typeof Teachers & { aH: number, burden: { hH?: number; mounth?: Date; }[] })[] = (discipline.teachers as unknown) as (typeof Teachers & { aH: number, burden: { hH?: number; mounth?: Date; }[] })[];
 
-            const teachersWithHH = getTeachersByDate(teachers, new Date(date.toString()));
+            const teachersWithHH = getTeachersByDate(teachers, dateParam);
 
             res.json({ teachers: teachersWithHH });
         } catch (error) {
