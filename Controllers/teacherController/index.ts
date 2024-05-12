@@ -15,13 +15,10 @@ const getTeachersByDate = (teachers: TeacherWithBurden[], date: Date): TeacherWi
     const targetYear = date.getFullYear();
 
     return teachers.filter(teacher => {
-        const filtered = teacher.burden.filter(burden => {
-            if (!burden.mounth) return false
-            console.log('Месяц', burden.mounth?.getMonth() + 1, targetMonth);
-            console.log('Год', burden.mounth?.getFullYear(), targetYear);
-            return burden.mounth?.getMonth() + 1 === targetMonth && burden.mounth?.getFullYear() === targetYear;
+        return teacher.burden.some(burden => {
+            const burdenDate = new Date(burden.mounth);
+            return burdenDate.getMonth() === targetMonth && burdenDate.getFullYear() === targetYear;
         });
-        return filtered.length === 0 || filtered.every(burden => burden.hH === undefined || burden.hH === 0);
     });
 }
 
