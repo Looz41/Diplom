@@ -242,11 +242,11 @@ class teachersController {
      *         required: true
      *         description: Идентификатор дисциплины
      *       - in: query
-     *         name: id
+     *         name: date
      *         schema:
      *           type: Date
      *         required: true
-     *         description: Дата
+     *         description: Дата в формате YYYY-MM-DD
      *     responses:
      *       '200':
      *         description: Успешный запрос. Возвращены преподаватели с учебной нагрузкой и без неё.
