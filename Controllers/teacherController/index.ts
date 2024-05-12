@@ -252,6 +252,12 @@ class teachersController {
      *           type: string
      *         required: true
      *         description: Идентификатор дисциплины
+     *       - in: query
+     *         name: date
+     *         schema:
+     *           type: string
+     *           format: date
+     *         description: Дата для фильтрации расписания в формате YYYY-MM-DD.
      *     responses:
      *       '200':
      *         description: Успешный запрос. Возвращены преподаватели с учебной нагрузкой и без неё.
