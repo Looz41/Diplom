@@ -292,38 +292,34 @@ class teachersController {
 
             const teachersWithHH = teachers.filter(teacher => {
                 const filtered = teacher.burden.filter(e => {
-                    const burdenDate = e.mounth ? new Date(e.mounth) : undefined;
-                    const queryDate = date ? new Date(date as string) : undefined;
-                    return (
-                        burdenDate.getMonth() === queryDate.getMonth() &&
-                        burdenDate.getFullYear() === queryDate.getFullYear()
-                    );
+                    const burdenDate = e.mounth ? new Date(e.mounth) : null;
+                    const queryDate = date ? new Date(date as string) : null;
+                    const burdenDateString = burdenDate ? burdenDate.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) : '';
+                    const queryDateString = queryDate ? queryDate.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) : '';
+                    return burdenDateString === queryDateString;
                 });
                 return filtered.length > 0 && filtered[0].hH !== undefined && filtered[0].hH !== 0;
             });
 
             const teachersWithoutHH = teachers.filter(teacher => {
                 const filtered = teacher.burden.filter(e => {
-                    const burdenDate = new Date(e.mounth);
-                    const queryDate = new Date(date as string);
-                    return (
-                        burdenDate.getMonth() === queryDate.getMonth() &&
-                        burdenDate.getFullYear() === queryDate.getFullYear()
-                    );
+                    const burdenDate = e.mounth ? new Date(e.mounth) : null;
+                    const queryDate = date ? new Date(date as string) : null;
+                    const burdenDateString = burdenDate ? burdenDate.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) : '';
+                    const queryDateString = queryDate ? queryDate.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) : '';
+                    return burdenDateString === queryDateString;
                 });
                 return filtered.length === 0 || filtered[0].hH === undefined || filtered[0].hH === 0;
             });
 
             teachersWithHH.sort((a, b) => {
                 const bHH = b.burden.filter((e: any) => {
-                    const burdenDate = new Date(e.mounth);
-                    const queryDate = new Date(date as string);
-                    return (
-                        burdenDate.getMonth() === queryDate.getMonth() &&
-                        burdenDate.getFullYear() === queryDate.getFullYear()
-                    );
+                    const burdenDate = e.mounth ? new Date(e.mounth) : null;
+                    const queryDate = date ? new Date(date as string) : null;
+                    const burdenDateString = burdenDate ? burdenDate.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) : '';
+                    const queryDateString = queryDate ? queryDate.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) : '';
+                    return burdenDateString === queryDateString;
                 }).reduce((acc: any, cur: any) => acc + cur.hH, 0);
-
                 const aHH = a.burden.reduce((acc: any, cur: any) => acc + cur.hH, 0);
                 return (b.aH / bHH) - (a.aH / aHH);
             });
