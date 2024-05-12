@@ -8,7 +8,9 @@ import mongoose from "mongoose";
 
 const { validationResult } = require('express-validator')
 
-const getTeachersByDate = (teachers: (typeof Teachers & { aH: number, burden: { hH?: number; mounth?: Date; }[] })[], date: Date): (typeof Teachers & { aH: number, burden: { hH?: number; mounth?: Date; }[] })[] => {
+type TeacherWithBurden = typeof Teachers & { aH: number, burden: { hH?: number; mounth?: Date; }[] };
+
+const getTeachersByDate = (teachers: TeacherWithBurden[], date: Date): TeacherWithBurden[] => {
     const targetDate = new Date(date);
     return teachers.filter(teacher => {
         const filtered = teacher.burden.filter(burden => {
@@ -18,7 +20,6 @@ const getTeachersByDate = (teachers: (typeof Teachers & { aH: number, burden: { 
         return filtered.length === 0 || filtered.every(burden => burden.hH === undefined || burden.hH === 0);
     });
 }
-
 
 class teachersController {
 
@@ -297,18 +298,19 @@ class teachersController {
                 return res.status(404).json({ message: 'Дисциплина не найдена' });
             }
 
-            const dateParam = date ? new Date(date.toString()) : undefined;
+            // Ensure that date is of type string or number
+            const dateParam = typeof date === 'string' || typeof date === 'number' ? new Date(date.toString()) : undefined;
 
             if (!dateParam) {
                 return res.status(400).json({ message: 'Дата не указана' });
             }
 
-            const teachers: (typeof Teachers & { aH: number, burden: { hH?: number; mounth?: Date; }[] })[] = (discipline.teachers as unknown) as (typeof Teachers & { aH: number, burden: { hH?: number; mounth?: Date; }[] })[];
+            const teachers: TeacherWithBurden[] = (discipline.teachers as unknown) as TeacherWithBurden[];
 
             const teachersWithHH = getTeachersByDate(teachers, dateParam);
 
             res.json({ teachers: teachersWithHH });
-        } catch (error) {
+        } catch (error: any) { // Specify type of error
             console.error(error);
             res.status(500).json({ message: 'Ошибка сервера', error: error.message });
         }
