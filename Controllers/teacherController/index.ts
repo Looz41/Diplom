@@ -4,6 +4,7 @@ import {
     Teachers,
     Disciplines
 } from '../../models/';
+import mongoose from "mongoose";
 
 const { validationResult } = require('express-validator')
 
@@ -240,6 +241,12 @@ class teachersController {
      *           type: string
      *         required: true
      *         description: Идентификатор дисциплины
+     *       - in: query
+     *         name: id
+     *         schema:
+     *           type: Date
+     *         required: true
+     *         description: Дата
      *     responses:
      *       '200':
      *         description: Успешный запрос. Возвращены преподаватели с учебной нагрузкой и без неё.
@@ -263,11 +270,15 @@ class teachersController {
      */
     async getTeacherByDiscipline(req: Request, res: Response) {
         try {
-            if (!req.query || !req.query.id) {
+            const { id, date } = req.query;
+
+            if (!req.query || !id) {
                 return res.status(400).json({ message: 'Идентификатор дисциплины не указан' });
             }
 
-            const { id, date } = req.query;
+            if (!mongoose.Types.ObjectId.isValid(id.toString())) {
+                return res.status(400).json({ message: 'Неверный формат id' })
+            }
 
             const discipline = await Disciplines.findOne({ _id: id })
                 .populate('teachers')
@@ -377,6 +388,10 @@ class teachersController {
     async getTeacher(req: Request, res: Response) {
         try {
             const { id: teacherId } = req.query;
+
+            if (!mongoose.Types.ObjectId.isValid(teacherId.toString())) {
+                return res.status(400).json({ message: 'Неверный формат id' })
+            }
 
             let teachers;
             if (teacherId) {

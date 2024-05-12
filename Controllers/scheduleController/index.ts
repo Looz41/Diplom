@@ -8,7 +8,7 @@ import {
     Audithories,
     Types
 } from "../../models/index";
-import { isValidObjectId } from "mongoose";
+import mongoose, { isValidObjectId } from "mongoose";
 
 interface ScheduleItem {
     discipline: string;
@@ -149,7 +149,7 @@ class scheduleController {
 
 
             for (const teacher of teachers) {
-                let hH = teacher.burden.filter(e => 
+                let hH = teacher.burden.filter(e =>
                     e.mounth?.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) === new Date(date).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }))[0].hH
                 if (hH !== undefined && hH !== null) {
                     hH += 2;
@@ -265,6 +265,10 @@ class scheduleController {
 
             if (!id || !date || !group || !items) {
                 return res.status(400).json({ message: 'Параметры id, date, group и items обязательны' });
+            }
+
+            if (!mongoose.Types.ObjectId.isValid(id)) {
+                return res.status(400).json({ message: 'Неверный формат id' })
             }
 
             const existingSchedule = await Schedule.findById(id);
