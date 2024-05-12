@@ -16,8 +16,9 @@ const getTeachersByDate = (teachers: TeacherWithBurden[], date: Date): TeacherWi
 
     return teachers.filter(teacher => {
         const filtered = teacher.burden.filter(burden => {
-            const burdenDate = new Date(burden.mounth);
-            return burdenDate.getMonth() === targetMonth && burdenDate.getFullYear() === targetYear;
+            console.log('Месяц', burden.mounth.getMonth(), targetMonth)
+            console.log('Год', burden.mounth.getFullYear(), targetYear)
+            return burden.mounth.getMonth() === targetMonth && burden.mounth.getFullYear() === targetYear;
         });
         return filtered.length === 0 || filtered.every(burden => burden.hH === undefined || burden.hH === 0);
     });
@@ -316,7 +317,7 @@ class teachersController {
 
             const teachersWithHH = getTeachersByDate(teachers, dateParam);
 
-            res.json({ teachers: teachersWithHH});
+            res.json({ teachers: teachersWithHH });
         } catch (error: any) { // Specify type of error
             console.error(error);
             res.status(500).json({ message: 'Ошибка сервера', error: error.message });
