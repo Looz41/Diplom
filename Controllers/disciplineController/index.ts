@@ -95,13 +95,11 @@ class disciplineController {
 
             const { name, groups, teachers } = req.body;
 
-            // Получаем ID групп по их именам
             const groupsIds = [];
             for (const groupName of groups) {
                 let group = await Groups.findOne({ name: groupName });
 
 
-                // Если группа не найдена, создаем новую
                 if (!group) {
                     return res.status(404).json({ message: 'Группа не найден' });
                 }
@@ -111,7 +109,10 @@ class disciplineController {
 
             const teachersIds = [];
             for (const teacherName of teachers) {
-                let teacher = await Teachers.findOne({ surname: teacherName.split(" ")[0] || "", name: teacherName.split(" ")[1] || "", patronymic: teacherName.split(" ")[2] || ""});
+                let teacher = await Teachers.findOne({ surname: teacherName.split(" ")[0] || "", name: teacherName.split(" ")[1] || "", patronymic: teacherName.split(" ")[2] || "" });
+
+                console.log(teacherName.split(" ")[0] || "", teacherName.split(" ")[1] || "", teacherName.split(" ")[2] || "")
+                console.log(teacher)
 
                 if (!teacher) {
                     return res.status(404).json({ message: 'Преподаватель не найден' });
