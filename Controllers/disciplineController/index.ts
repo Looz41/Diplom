@@ -111,7 +111,7 @@ class disciplineController {
 
             const teachersIds = [];
             for (const teacherName of teachers) {
-                let teacher = await Teachers.findOne({ teacherName });
+                let teacher = await Teachers.findOne({ surname: teacherName.split(" ")[0] || "" });
 
                 if (!teacher) {
                     return res.status(404).json({ message: 'Преподаватель не найден' });
