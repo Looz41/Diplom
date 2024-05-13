@@ -115,7 +115,7 @@ class disciplineController {
                 let teacher = await Teachers.findOne({ surname: teacherName });
 
                 if (!teacher) {
-                    res.status(404).json({ message: 'Преподаватель не найден' })
+                    return res.status(404).json({ message: 'Преподаватель не найден' });
                 }
 
                 teachersIds.push(teacher._id);
