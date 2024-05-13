@@ -28,7 +28,7 @@ const getTeachersByDate = (teachers: TeacherWithBurden[], date: Date): any[] => 
             aH: teacher.aH,
             burden: filteredBurden
         };
-    }).filter(teacher => teacher.burden.length > 0);
+    });
 }
 
 class teachersController {
