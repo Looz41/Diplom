@@ -17,20 +17,6 @@ const DisciplineSchema = new mongoose.Schema({
         ref: 'Teachers',
         required: true,
     }],
-    aH: {
-        type: Number,
-        required: true,
-    },
-    burden: [
-        {
-            hH: {
-                type: Number,
-            },
-            mounth: {
-                type: Date,
-            }
-        }
-    ]
 })
 
 export default model("Disciplines", DisciplineSchema)

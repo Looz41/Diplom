@@ -93,7 +93,7 @@ class disciplineController {
                 return res.status(400).json({ message: 'Ошибка добавления дисциплины', errors: errors.array() });
             }
 
-            const { name, groups, teachers, aH } = req.body;
+            const { name, groups, teachers } = req.body;
 
             // Получаем ID групп по их именам
             const groupsIds = [];
@@ -103,8 +103,7 @@ class disciplineController {
 
                 // Если группа не найдена, создаем новую
                 if (!group) {
-                    group = new Groups({ name: groupName });
-                    await group.save();
+                    return res.status(404).json({ message: 'Группа не найден' });
                 }
 
                 groupsIds.push(group._id);
@@ -126,7 +125,7 @@ class disciplineController {
                 return res.status(400).json({ error: `Дисциплина ${name} уже существует` });
             }
 
-            const discipline = new Disciplines({ name, groups: groupsIds, teachers: teachersIds, aH });
+            const discipline = new Disciplines({ name, groups: groupsIds, teachers: teachersIds });
             await discipline.save();
 
             return res.json({ message: `Дисциплина ${name} была успешно создана.` });
@@ -227,7 +226,6 @@ class disciplineController {
             existingDiscipline.name = name;
             existingDiscipline.groups = groups;
             existingDiscipline.teachers = teachers;
-            existingDiscipline.aH = aH;
             await existingDiscipline.save();
 
             res.json({ message: `Дисциплина с id ${id} успешно отредактирована` });
