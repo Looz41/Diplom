@@ -6,7 +6,10 @@ const AudithoriesSchema = new mongoose.Schema({
         type: String,
         required: true,
         unique: true
-    }
+    },
+    pc: {
+        type: Boolean,
+    },
 })
 
 export default model("Audithories", AudithoriesSchema)

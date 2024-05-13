@@ -45,9 +45,9 @@ class disciplineController {
      *                 items:
      *                   type: string
      *                 description: Список фамилий преподавателей, преподающих дисциплину.
-     *               aH:
-     *                 type: number
-     *                 description: Количество академических часов.
+     *               pc:
+     *                 type: boolean
+     *                 description: Компьютерная ли дисциплина.
      *     responses:
      *       200:
      *         description: Успешное добавление дисциплины.
@@ -93,7 +93,7 @@ class disciplineController {
                 return res.status(400).json({ message: 'Ошибка добавления дисциплины', errors: errors.array() });
             }
 
-            const { name, groups, teachers } = req.body;
+            const { name, groups, teachers, pc } = req.body;
 
             const groupsIds = [];
             for (const groupName of groups) {
@@ -111,9 +111,6 @@ class disciplineController {
             for (const teacherName of teachers) {
                 let teacher = await Teachers.findOne({ surname: teacherName.split(" ")[0] || "", name: teacherName.split(" ")[1] || "", patronymic: teacherName.split(" ")[2] || "" });
 
-                console.log(teacherName.split(" ")[0] || "", teacherName.split(" ")[1] || "", teacherName.split(" ")[2] || "")
-                console.log(teacher)
-
                 if (!teacher) {
                     return res.status(404).json({ message: 'Преподаватель не найден' });
                 }
@@ -126,7 +123,7 @@ class disciplineController {
                 return res.status(400).json({ error: `Дисциплина ${name} уже существует` });
             }
 
-            const discipline = new Disciplines({ name, groups: groupsIds, teachers: teachersIds });
+            const discipline = new Disciplines({ name, groups: groupsIds, teachers: teachersIds, pc: pc || false });
             await discipline.save();
 
             return res.json({ message: `Дисциплина ${name} была успешно создана.` });

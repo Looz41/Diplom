@@ -17,6 +17,9 @@ const DisciplineSchema = new mongoose.Schema({
         ref: 'Teachers',
         required: true,
     }],
+    pc: {
+        type: Boolean
+    }
 })
 
 export default model("Disciplines", DisciplineSchema)

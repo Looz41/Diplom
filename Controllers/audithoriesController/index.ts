@@ -26,6 +26,9 @@ class audithoriesController {
  *               name:
  *                 type: string
  *                 description: Имя новой аудитории.
+ *               pc:
+ *                 type: boolean
+ *                 description: Компьютерная ли аудитория.
  *             required:
  *               - name
  *     responses:
@@ -88,7 +91,7 @@ class audithoriesController {
                 return res.status(400).json({ error: 'Ошибка ввода', errors: errors.array() });
             }
 
-            const { name } = req.body;
+            const { name, pc } = req.body;
 
             if (!name) {
                 return res.status(400).json({ error: 'Параметр name обязателен' });
@@ -99,7 +102,7 @@ class audithoriesController {
                 return res.status(409).json({ error: `Аудитория ${name} уже существует` });
             }
 
-            const newAudit = new Audithories({ name });
+            const newAudit = new Audithories({ name, pc: pc || false });
             await newAudit.save();
 
             res.json({ message: `Аудитория ${name} успешно создана` });
