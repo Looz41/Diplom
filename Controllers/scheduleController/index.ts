@@ -158,7 +158,9 @@ class scheduleController {
             await newSchedule.save();
 
             const teachersIds = items.map((item: ScheduleItem) => item.teacher);
+            const disciplinesIds = items.map((item: ScheduleItem) => item.discipline);
             const teachers = await Teachers.find({ _id: { $in: teachersIds } });
+            const disciplines = await Disciplines.find({ _id: { $in: disciplinesIds } });
 
 
             for (const teacher of teachers) {
@@ -176,6 +178,25 @@ class scheduleController {
                 }
 
                 await teacher.save();
+            }
+
+            for (const discipline of disciplines) {
+                const burdenItem = discipline.groups.find(e =>
+                    e.burden.month?.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) === new Date(date).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' })
+                );
+
+                if (!burdenItem || burdenItem.burden.hH === undefined || burdenItem.burden.hH === null) {
+                    discipline.groups.push({
+                        burden: {
+                            month: date,
+                            hH: 2
+                        }
+                    })
+                } else {
+                    burdenItem.burden.hH += 2;
+                }
+
+                await discipline.save();
             }
 
             res.status(200).json({ message: "Расписание успешно создано" });
