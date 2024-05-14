@@ -20,7 +20,6 @@ const DisciplineSchema = new Schema({
             burden: {
                 month: {
                     type: Date,
-                    required: true
                 },
                 hH: {
                     type: Number,

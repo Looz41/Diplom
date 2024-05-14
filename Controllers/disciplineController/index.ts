@@ -72,7 +72,7 @@ class disciplineController {
                 return res.status(400).json({ message: 'Ошибка добавления дисциплины', errors: errors.array() });
             }
 
-            const { name, groups, teachers, pc, date } = req.body;
+            const { name, groups, teachers, pc } = req.body;
 
             const groupsWithIds = [];
             for (const groupItem of groups) {
@@ -83,7 +83,7 @@ class disciplineController {
                     return res.status(404).json({ message: `Группа ${groupName} не найдена` });
                 }
 
-                groupsWithIds.push({ item: group._id, aH, burden: { month: date ? new Date(date).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) : new Date().toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) } });
+                groupsWithIds.push({ item: group._id, aH });
             }
 
             const teachersIds = [];
