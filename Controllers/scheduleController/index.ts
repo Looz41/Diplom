@@ -185,15 +185,13 @@ class scheduleController {
                     e.burden?.month?.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) === new Date(date).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' })
                 );
 
-                console.log(burdenItem)
-
-                if (!burdenItem) return
-
-                if (!burdenItem.burden || burdenItem.burden.hH === undefined || burdenItem.burden.hH === null) {
-                    discipline.groups.filter((e) => e.id === burdenItem.id)[0].burden = {
-                        month: date,
-                        hH: 2,
-                    };
+                if (!burdenItem || !burdenItem.burden || burdenItem.burden.hH === undefined || burdenItem.burden.hH === null) {
+                    discipline.groups.forEach(_group => {
+                        _group.burden = {
+                            month: date,
+                            hH: 2
+                        }
+                    });
                 } else {
                     burdenItem.burden.hH += 2;
                 }
