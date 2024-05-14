@@ -182,7 +182,7 @@ class scheduleController {
 
             for (const discipline of disciplines) {
                 const burdenItem = discipline.groups.find(e =>
-                    e.burden.month?.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) === new Date(date).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' })
+                    e.burden?.month?.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) === new Date(date).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' })
                 );
 
                 if (!burdenItem.burden || burdenItem.burden.hH === undefined || burdenItem.burden.hH === null) {
