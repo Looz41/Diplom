@@ -605,10 +605,11 @@ class scheduleController {
 
             for (const teacher of teachers) {
                 const burdenItemIndex = teacher.burden.findIndex(e =>
-                    e.mounth?.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) === new Date(existingSchedule.date).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' })
+                    e.mounth?.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) ===
+                    existingSchedule.date?.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' })
                 );
 
-                if (burdenItemIndex !== -1) {
+                if (burdenItemIndex !== -1 && teacher.burden[burdenItemIndex]) {
                     teacher.burden[burdenItemIndex].hH -= 2;
                     await teacher.save();
                 }
