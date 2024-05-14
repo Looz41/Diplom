@@ -15,7 +15,7 @@ const DisciplineSchema = new Schema({
             },
             aH: {
                 type: Number,
-                required: true
+                required: true,
             },
             burden: {
                 month: {

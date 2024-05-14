@@ -187,9 +187,11 @@ class scheduleController {
 
                 if (!burdenItem || !burdenItem.burden || burdenItem.burden.hH === undefined || burdenItem.burden.hH === null) {
                     discipline.groups.push({
+                        item: burdenItem.item,
+                        ah: burdenItem.aH,
                         burden: {
                             month: date,
-                            hH: 2
+                            hH: 2,
                         }
                     })
                 } else {
