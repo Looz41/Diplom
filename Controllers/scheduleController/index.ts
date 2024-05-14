@@ -615,7 +615,7 @@ class scheduleController {
                     existingSchedule.date?.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' })
                 );
 
-                if (!teacher.burden) {
+                if (!teacher.burden || !teacher.burden[burdenItemIndex].hH) {
                     return
                 }
                 teacher.burden[burdenItemIndex].hH -= 2;
