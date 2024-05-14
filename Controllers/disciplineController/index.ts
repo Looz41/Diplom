@@ -9,8 +9,8 @@ import { ObjectId } from 'mongodb';
 
 const { validationResult } = require('express-validator')
 
-interface MongooseValidationError {
-    message: string;
+interface QueryType {
+    'groups.item'?: string;
 }
 
 class disciplineController {
@@ -251,9 +251,12 @@ class disciplineController {
   */
     async getDiscipline(req: Request, res: Response) {
         try {
-            let query = {};
-            if (req.query.groupId) {
+            let query: QueryType = {};
+
+            if (typeof req.query.groupId === 'string') {
                 query['groups.item'] = req.query.groupId;
+            } else {
+                throw new Error('Некорректный тип для groupId');
             }
 
             const disciplines = await Disciplines.find(query)
