@@ -225,8 +225,8 @@ class disciplineController {
   *       - bearerAuth: []
   *     parameters:
   *       - in: query
-  *         name: id
-  *         description: Идентификатор группы длф получения её возможных дисциплин
+  *         name: groupId
+  *         description: Идентификатор группы длz получения её возможных дисциплин
   *     responses:
   *       200:
   *         description: Успешный запрос. Возвращает список дисциплин.
