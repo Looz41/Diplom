@@ -226,7 +226,7 @@ class disciplineController {
   *     parameters:
   *       - in: query
   *         name: groupId
-  *         description: Идентификатор группы длz получения её возможных дисциплин
+  *         description: Идентификатор группы для получения её возможных дисциплин
   *     responses:
   *       200:
   *         description: Успешный запрос. Возвращает список дисциплин.
@@ -255,8 +255,6 @@ class disciplineController {
 
             if (typeof req.query.groupId === 'string') {
                 query['groups.item'] = req.query.groupId;
-            } else {
-                throw new Error('Некорректный тип для groupId');
             }
 
             const disciplines = await Disciplines.find(query)
