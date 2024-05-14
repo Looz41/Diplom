@@ -5,33 +5,11 @@ import {
     Groups,
     Teachers,
 } from '../../models/'
-import mongoose from 'mongoose';
 
 const { validationResult } = require('express-validator')
 
 interface QueryType {
     'groups.item'?: string;
-}
-
-type DisciplinesWithBurden = typeof Disciplines & { name: string, groups: { burden: { hH?: number; mounth?: Date; } }[] };
-
-const getDisciplinesByDate = (disciplines: DisciplinesWithBurden[], date: Date): any[] => {
-    const targetMonth = date.getMonth();
-    const targetYear = date.getFullYear();
-
-    return disciplines.map(discipline => {
-        const filteredBurden = discipline.groups.filter(burden => {
-            if (!burden.burden.mounth) return false
-            const burdenMonth = burden.burden.mounth.getMonth();
-            const burdenYear = burden.burden.mounth.getFullYear();
-            return burdenMonth === targetMonth && burdenYear === targetYear;
-        });
-
-        return {
-            name: discipline.name,
-            groups: filteredBurden,
-        };
-    });
 }
 
 class disciplineController {
@@ -211,10 +189,10 @@ class disciplineController {
                 return res.status(400).json({ error: 'Ошибка запроса', errors: errors.array() });
             }
 
-            const { id, name, groups, teachers, aH } = req.body;
+            const { id, name, groups, teachers, pc } = req.body;
 
-            if (!id || !name || !groups || !teachers || !aH) {
-                return res.status(400).json({ error: 'Параметры id, name, groups, teachers и aH обязательны' });
+            if (!id || !name || !groups || !teachers) {
+                return res.status(400).json({ error: 'Параметры id, name, groups, teachers и pc обязательны' });
             }
 
             const existingDiscipline = await Disciplines.findById(id);
@@ -225,6 +203,7 @@ class disciplineController {
             existingDiscipline.name = name;
             existingDiscipline.groups = groups;
             existingDiscipline.teachers = teachers;
+            existingDiscipline.pc = pc;
             await existingDiscipline.save();
 
             res.json({ message: `Дисциплина с id ${id} успешно отредактирована` });
@@ -283,8 +262,8 @@ class disciplineController {
                 .exec();
 
             const formattedDisciplines = disciplines.map(discipline => ({
-                id: discipline._id,
                 name: discipline.name,
+                groups: discipline.groups,
             }));
 
             res.json({ disciplines: formattedDisciplines });
