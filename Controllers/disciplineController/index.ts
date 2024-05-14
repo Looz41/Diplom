@@ -253,7 +253,7 @@ class disciplineController {
         try {
             let query = {};
             if (req.query.groupId) {
-                query = { groups: req.query.groupId };
+                query['groups.item'] = req.query.groupId;
             }
 
             const disciplines = await Disciplines.find(query)
