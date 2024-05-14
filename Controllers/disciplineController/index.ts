@@ -5,12 +5,33 @@ import {
     Groups,
     Teachers,
 } from '../../models/'
-import { ObjectId } from 'mongodb';
+import mongoose from 'mongoose';
 
 const { validationResult } = require('express-validator')
 
 interface QueryType {
     'groups.item'?: string;
+}
+
+type DisciplinesWithBurden = typeof Disciplines & { name: string, groups: { burden: { hH?: number; mounth?: Date; } }[] };
+
+const getDisciplinesByDate = (disciplines: DisciplinesWithBurden[], date: Date): any[] => {
+    const targetMonth = date.getMonth();
+    const targetYear = date.getFullYear();
+
+    return disciplines.map(discipline => {
+        const filteredBurden = discipline.groups.filter(burden => {
+            if (!burden.burden.mounth) return false
+            const burdenMonth = burden.burden.mounth.getMonth();
+            const burdenYear = burden.burden.mounth.getFullYear();
+            return burdenMonth === targetMonth && burdenYear === targetYear;
+        });
+
+        return {
+            name: discipline.name,
+            groups: filteredBurden,
+        };
+    });
 }
 
 class disciplineController {
@@ -258,7 +279,7 @@ class disciplineController {
             }
 
             const disciplines = await Disciplines.find(query)
-                .select('_id name')
+                .select('name groups')
                 .exec();
 
             const formattedDisciplines = disciplines.map(discipline => ({
