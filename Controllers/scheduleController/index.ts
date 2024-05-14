@@ -120,7 +120,13 @@ class scheduleController {
                     return res.status(400).json({ message: `Учитель с ID ${item.teacher} не ведет дисциплину с ID ${item.discipline}` });
                 }
                 const audithoria = await Audithories.findOne({ _id: item.audithoria });
+                if (!audithoria) {
+                    return res.status(404).json({ message: 'Аудитория не найдена' })
+                }
                 const type = await Types.findOne({ _id: item.type })
+                if (!type) {
+                    return res.status(404).json({ message: 'Тип не найден' })
+                }
                 if (avaliableTypes.includes(type.name) && !(discipline.pc && audithoria.pc)) {
                     return res.status(400).json({ message: `Дисциплина ${discipline.name} на ${type.name} требует компьютерный класс` })
                 }
