@@ -185,7 +185,7 @@ class scheduleController {
                     e.burden?.month?.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) === new Date(date).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' })
                 );
 
-                if (!burdenItem.burden || !burdenItem.burden || burdenItem.burden.hH === undefined || burdenItem.burden.hH === null) {
+                if (!burdenItem || !burdenItem.burden || burdenItem.burden.hH === undefined || burdenItem.burden.hH === null) {
                     discipline.groups.push({
                         burden: {
                             month: date,
