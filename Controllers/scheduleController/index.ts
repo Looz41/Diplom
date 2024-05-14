@@ -186,9 +186,10 @@ class scheduleController {
                 );
 
                 if (!burdenItem || !burdenItem.burden || burdenItem.burden.hH === undefined || burdenItem.burden.hH === null) {
+                    console.log(burdenItem.aH)
                     discipline.groups.push({
                         item: burdenItem ? burdenItem.item : null,
-                        aH: burdenItem ? burdenItem.aH : null,
+                        aH: burdenItem ? burdenItem.aH : 0,
                         burden: {
                             month: date,
                             hH: 2,
