@@ -112,10 +112,17 @@ class scheduleController {
         try {
             const { date, group, items } = req.body;
 
+            const avaliableTypes = ['Практическая работа', 'Лабораторная работа', 'Зачет', 'Экзамен']
+
             for (const item of items) {
                 const discipline = await Disciplines.findOne({ _id: item.discipline, teachers: item.teacher });
                 if (!discipline) {
                     return res.status(400).json({ message: `Учитель с ID ${item.teacher} не ведет дисциплину с ID ${item.discipline}` });
+                }
+                const audithoria = await Audithories.findOne({ _id: item.audithoria });
+                const type = await Types.findOne({ _id: item.type })
+                if (avaliableTypes.includes(type.name) && !(discipline.pc && audithoria.pc)) {
+                    return res.status(400).json({ message: `Дисциплина ${discipline.name} на ${type.name} требует компьютерный класс` })
                 }
             }
 
@@ -152,7 +159,7 @@ class scheduleController {
                 const burdenItem = teacher.burden.find(e =>
                     e.mounth?.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) === new Date(date).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' })
                 );
-        
+
                 if (!burdenItem || burdenItem.hH === undefined || burdenItem.hH === null) {
                     teacher.burden.push({
                         mounth: date,
@@ -161,7 +168,7 @@ class scheduleController {
                 } else {
                     burdenItem.hH += 2;
                 }
-        
+
                 await teacher.save();
             }
 
