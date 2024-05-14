@@ -610,21 +610,17 @@ class scheduleController {
             const teachers = await Teachers.find({ _id: { $in: teachersIds } });
 
             for (const teacher of teachers) {
-                const burdenItemIndex = teacher.burden.findIndex(e =>
-                    e.mounth?.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) ===
-                    existingSchedule.date?.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' })
+                const burdenItem = teacher.burden.find(e =>
+                    e.mounth?.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) === existingSchedule.date.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' })
                 );
 
-                if (
-                    teacher.burden[burdenItemIndex] &&
-                    teacher.burden[burdenItemIndex].hH !== undefined &&
-                    typeof teacher.burden[burdenItemIndex].hH === 'number'
-                ) {
-                    teacher.burden[burdenItemIndex].hH -= 2;
-                    await teacher.save();
+                if (!burdenItem || burdenItem.hH === undefined || burdenItem.hH === null) {
+                    return
                 } else {
-                    res.status(500).json({ message: 'Невозможно удалить нагрузку преподавателя' });
+                    burdenItem.hH -= 2;
                 }
+
+                await teacher.save();
             }
 
             res.status(200).json({ message: "Расписание успешно удалено" });
