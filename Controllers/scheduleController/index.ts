@@ -615,7 +615,11 @@ class scheduleController {
                     existingSchedule.date?.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' })
                 );
 
-                if (teacher.burden[burdenItemIndex] && teacher.burden[burdenItemIndex].hH !== undefined) {
+                if (
+                    teacher.burden[burdenItemIndex] &&
+                    teacher.burden[burdenItemIndex].hH !== undefined &&
+                    typeof teacher.burden[burdenItemIndex].hH === 'number'
+                ) {
                     teacher.burden[burdenItemIndex].hH -= 2;
                     await teacher.save();
                 } else {
