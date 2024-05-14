@@ -549,7 +549,7 @@ class scheduleController {
      * Удаление расписания
      * @swagger
      * /schedule/delete:
-     *   delete:
+     *   post:
      *     summary: Удалить расписание
      *     description: Удаляет расписание по его идентификатору
      *     tags: [schedule]

@@ -286,7 +286,7 @@ class audithoriesController {
  * Удаление аудитории
  * @swagger
  * /audithories/delete:
- *   delete:
+ *   post:
  *     summary: Удалить аудиторию
  *     description: Удаляет аудиторию по её идентификатору
  *     tags: [audithories]

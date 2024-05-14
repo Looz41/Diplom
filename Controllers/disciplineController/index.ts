@@ -287,7 +287,7 @@ class disciplineController {
 * Удаление дисциплины
 * @swagger
 * /discipline/delete:
-*   delete:
+*   post:
 *     summary: Удалить дисциплину
 *     description: Удаляет дисциплины по её идентификатору
   *     tags:

@@ -266,7 +266,7 @@ class typesController {
     * Удаление типа
     * @swagger
     * /types/delete:
-    *   delete:
+    *   post:
     *     summary: Удалить тип
     *     description: Удаляет тип по его идентификатору
     *     tags: [types]

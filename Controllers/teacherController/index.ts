@@ -448,7 +448,7 @@ class teachersController {
  * Удаление преподавателя
  * @swagger
  * /teacher/delete:
- *   delete:
+ *   post:
  *     summary: Удалить преподавателя
  *     description: Удаляет преподавателя по его идентификатору
  *     tags: [teachers]
@@ -496,7 +496,7 @@ class teachersController {
  */
     async deleteTeacher(req: Request, res: Response) {
         try {
-            const teacherId = req.query.id;
+            const { id: teacherId } = req.query;
 
             const existingTeacher = await Teachers.findById(teacherId);
             if (!existingTeacher) {

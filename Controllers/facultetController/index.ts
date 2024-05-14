@@ -485,7 +485,7 @@ class facultetController {
  * Удаление факультета
  * @swagger
  * /facultet/delete:
- *   delete:
+ *   post:
  *     summary: Удалить факультет
  *     description: Удаляет факультет по его идентификатору
  *     tags: [facultet]
