@@ -615,11 +615,11 @@ class scheduleController {
                     existingSchedule.date?.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' })
                 );
 
-                try {
+                if (teacher.burden[burdenItemIndex] && teacher.burden[burdenItemIndex].hH !== undefined) {
                     teacher.burden[burdenItemIndex].hH -= 2;
                     await teacher.save();
-                } catch {
-                    res.status(500).json({ message: 'Невозможно удалить нагрузку преподавателя' })
+                } else {
+                    res.status(500).json({ message: 'Невозможно удалить нагрузку преподавателя' });
                 }
             }
 
