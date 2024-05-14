@@ -9,6 +9,7 @@ const controller = new audithoriesController();
 audithoriesRouter.post("/add", roleMiddleware(['ADMIN']), controller.addAudit);
 audithoriesRouter.get("/get", roleMiddleware(['USER',"ADMIN"]), controller.getAudithories);
 audithoriesRouter.post("/edit", roleMiddleware(["ADMIN"]), controller.editAudit);
+audithoriesRouter.post("/delete", roleMiddleware(["ADMIN"]), controller.deleteAudit);
 
 
 export { audithoriesRouter };

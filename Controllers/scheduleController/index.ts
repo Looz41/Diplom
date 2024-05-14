@@ -504,7 +504,6 @@ class scheduleController {
             const workbook = new ExcelJS.Workbook();
             const worksheet = workbook.addWorksheet('Schedule');
 
-            // Добавляем заголовки столбцов
             worksheet.columns = [
                 { header: 'Дата', key: 'date', width: 15 },
                 { header: 'Номер пары', key: 'number', width: 30 },
@@ -515,7 +514,6 @@ class scheduleController {
                 { header: 'Аудитория', key: 'audithoriaName', width: 15 },
             ];
 
-            // Заполняем таблицу данными из запроса к базе данных
             schedule.forEach(entry => {
                 entry.items.forEach(item => {
                     worksheet.addRow({
@@ -530,12 +528,93 @@ class scheduleController {
                 });
             });
 
-            // Устанавливаем тип контента и отправляем файл
             res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
             res.setHeader('Content-Disposition', 'attachment; filename=schedule.xlsx');
             await workbook.xlsx.write(res);
             res.end();
 
+        } catch (error) {
+            console.error('Ошибка:', error);
+            res.status(500).json({ message: 'Ошибка сервера' });
+        }
+    }
+
+    /**
+     * Удаление расписания
+     * @swagger
+     * /schedule/delete:
+     *   delete:
+     *     summary: Удалить расписание
+     *     description: Удаляет расписание по его идентификатору
+     *     tags: [schedule]
+     *     security:
+     *       - bearerAuth: []
+     *     parameters:
+     *       - in: query
+     *         name: id
+     *         description: Идентификатор расписания, которое нужно удалить
+     *         required: true
+     *         schema:
+     *           type: string
+     *           format: ObjectId
+     *     responses:
+     *       200:
+     *         description: Расписание успешно удалено
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 message:
+     *                   type: string
+     *                   description: Сообщение об успешном удалении
+     *       404:
+     *         description: Расписание не найдено
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 message:
+     *                   type: string
+     *                   description: Сообщение о том, что расписание не было найдено
+     *       500:
+     *         description: Ошибка сервера
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 message:
+     *                   type: string
+     *                   description: Сообщение об ошибке сервера
+     */
+    async deleteSchedule(req: Request, res: Response) {
+        try {
+            const scheduleId = req.query.id;
+
+            const existingSchedule = await Schedule.findById(scheduleId);
+            if (!existingSchedule) {
+                return res.status(404).json({ message: "Расписание не найдено" });
+            }
+
+            await Schedule.findByIdAndDelete(scheduleId);
+
+            const teachersIds = existingSchedule.items.map(item => item.teacher);
+            const teachers = await Teachers.find({ _id: { $in: teachersIds } });
+
+            for (const teacher of teachers) {
+                const burdenItemIndex = teacher.burden.findIndex(e =>
+                    e.mounth?.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) === new Date(existingSchedule.date).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' })
+                );
+
+                if (burdenItemIndex !== -1) {
+                    teacher.burden[burdenItemIndex].hH -= 2;
+                    await teacher.save();
+                }
+            }
+
+            res.status(200).json({ message: "Расписание успешно удалено" });
         } catch (error) {
             console.error('Ошибка:', error);
             res.status(500).json({ message: 'Ошибка сервера' });

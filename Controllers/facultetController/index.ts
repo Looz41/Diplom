@@ -480,6 +480,74 @@ class facultetController {
             res.status(500).json({ message: 'Ошибка сервера' });
         }
     }
+
+     /**
+ * Удаление факультета
+ * @swagger
+ * /facultet/delete:
+ *   delete:
+ *     summary: Удалить факультет
+ *     description: Удаляет факультет по его идентификатору
+ *     tags: [facultet]
+  *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: id
+ *         description: Идентификатор факультета, который нужно удалить
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     responses:
+ *       200:
+ *         description: Факультет успешно удален
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Сообщение об успешном удалении аудитории
+ *       404:
+ *         description: Факультет не найден
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Сообщение о том, что факультет не был найден
+ *       500:
+ *         description: Внутренняя ошибка сервера
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Сообщение об ошибке сервера
+ */
+     async deleteFacultet(req: Request, res: Response) {
+        try {
+            const facultettId = req.query.id;
+    
+            const existingFacultet = await Facultets.findById(facultettId);
+            if (!existingFacultet) {
+                return res.status(404).json({ message: "Факультет не найден" });
+            }
+    
+            await Facultets.findByIdAndDelete(facultettId);
+    
+            res.status(200).json({ message: "Факультет успешно удален" });
+        } catch (error) {
+            console.error('Ошибка:', error);
+            res.status(500).json({ message: 'Ошибка сервера' });
+        }
+    }
 }
 
 export { facultetController };

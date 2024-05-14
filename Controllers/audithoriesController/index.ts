@@ -280,6 +280,75 @@ class audithoriesController {
             res.status(500).json({ message: 'Ошибка сервера' });
         }
     }
+
+
+    /**
+ * Удаление аудитории
+ * @swagger
+ * /audithories/delete:
+ *   delete:
+ *     summary: Удалить аудиторию
+ *     description: Удаляет аудиторию по её идентификатору
+ *     tags: [audithories]
+  *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: id
+ *         description: Идентификатор аудитории, которую нужно удалить
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     responses:
+ *       200:
+ *         description: Аудитория успешно удалена
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Сообщение об успешном удалении аудитории
+ *       404:
+ *         description: Аудитория не найдена
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Сообщение о том, что аудитория не была найдена
+ *       500:
+ *         description: Внутренняя ошибка сервера
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Сообщение об ошибке сервера
+ */
+    async deleteAudit(req: Request, res: Response) {
+        try {
+            const auditId = req.query.id;
+    
+            const existingAudit = await Audithories.findById(auditId);
+            if (!existingAudit) {
+                return res.status(404).json({ message: "Аудитория не найдена" });
+            }
+    
+            await Audithories.findByIdAndDelete(auditId);
+    
+            res.status(200).json({ message: "Аудитория успешно удалена" });
+        } catch (error) {
+            console.error('Ошибка:', error);
+            res.status(500).json({ message: 'Ошибка сервера' });
+        }
+    }
 }
 
 export { audithoriesController };

@@ -9,5 +9,6 @@ facultetRouter.post("/add", roleMiddleware(['ADMIN']), controller.addFacultet);
 facultetRouter.get("/get", roleMiddleware(['ADMIN', "USER"]), controller.getFacultets);
 facultetRouter.get("/getOne", roleMiddleware(['ADMIN', "USER"]), controller.getFacultet);
 facultetRouter.post("/edit", roleMiddleware(['ADMIN']), controller.editFacultet);
+facultetRouter.post("/delete", roleMiddleware(["ADMIN"]), controller.deleteFacultet);
 
 export { facultetRouter };

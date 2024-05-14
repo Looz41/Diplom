@@ -261,6 +261,74 @@ class typesController {
             res.status(500).json({ message: 'Ошибка сервера' });
         }
     }
+
+        /**
+    * Удаление типа
+    * @swagger
+    * /types/delete:
+    *   delete:
+    *     summary: Удалить тип
+    *     description: Удаляет тип по его идентификатору
+    *     tags: [types]
+    *     security:
+    *       - bearerAuth: []
+    *     parameters:
+    *       - in: query
+    *         name: id
+    *         description: Идентификатор типа, который нужно удалить
+    *         required: true
+    *         schema:
+    *           type: string
+    *           format: ObjectId
+    *     responses:
+    *       200:
+    *         description: Тип успешно удален
+    *         content:
+    *           application/json:
+    *             schema:
+    *               type: object
+    *               properties:
+    *                 message:
+    *                   type: string
+    *                   description: Сообщение об успешном удалении типа
+    *       404:
+    *         description: Тип не найден
+    *         content:
+    *           application/json:
+    *             schema:
+    *               type: object
+    *               properties:
+    *                 message:
+    *                   type: string
+    *                   description: Сообщение о том, что тип не был найден
+    *       500:
+    *         description: Внутренняя ошибка сервера
+    *         content:
+    *           application/json:
+    *             schema:
+    *               type: object
+    *               properties:
+    *                 message:
+    *                   type: string
+    *                   description: Сообщение об ошибке сервера
+    */
+    async deleteType(req: Request, res: Response) {
+        try {
+            const typeId = req.query.id;
+
+            const existingType = await Types.findById(typeId);
+            if (!existingType) {
+                return res.status(404).json({ message: "Тип не найден" });
+            }
+
+            await Types.findByIdAndDelete(typeId);
+
+            res.status(200).json({ message: "Тип успешно удален" });
+        } catch (error) {
+            console.error('Ошибка:', error);
+            res.status(500).json({ message: 'Ошибка сервера' });
+        }
+    }
 }
 
 export { typesController };

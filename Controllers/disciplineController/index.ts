@@ -283,6 +283,74 @@ class disciplineController {
         }
     }
 
+    /**
+* Удаление дисциплины
+* @swagger
+* /discipline/delete:
+*   delete:
+*     summary: Удалить дисциплину
+*     description: Удаляет дисциплины по её идентификатору
+  *     tags:
+  *       - disciplines
+   *     security:
+ *       - bearerAuth: []
+*     parameters:
+*       - in: query
+*         name: id
+*         description: Идентификатор дисциплины, которую нужно удалить
+*         required: true
+*         schema:
+*           type: string
+*           format: ObjectId
+*     responses:
+*       200:
+*         description: Дисциплина успешно удалена
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 message:
+*                   type: string
+*                   description: Сообщение об успешном удалении дисциплины
+*       404:
+*         description: Дисциплина не найдена
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 message:
+*                   type: string
+*                   description: Сообщение о том, что дисциплина не была найдена
+*       500:
+*         description: Внутренняя ошибка сервера
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 message:
+*                   type: string
+*                   description: Сообщение об ошибке сервера
+*/
+    async deleteDiscipline(req: Request, res: Response) {
+        try {
+            const disciplineId = req.query.id;
+
+            const existingDiscipline = await Disciplines.findById(disciplineId);
+            if (!existingDiscipline) {
+                return res.status(404).json({ message: "Дисциплина не найдена" });
+            }
+
+            await Disciplines.findByIdAndDelete(disciplineId);
+
+            res.status(200).json({ message: "Дисциплина успешно удалена" });
+        } catch (error) {
+            console.error('Ошибка:', error);
+            res.status(500).json({ message: 'Ошибка сервера' });
+        }
+    }
 }
 
 export { disciplineController };

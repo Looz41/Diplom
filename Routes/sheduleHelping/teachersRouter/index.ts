@@ -9,5 +9,6 @@ teacherRouter.post('/add', roleMiddleware(['ADMIN']), controller.addTeacher);
 teacherRouter.get('/get', roleMiddleware(['USER', "ADMIN"]), controller.getTeacher);
 teacherRouter.get('/getTeacherByDiscipline', roleMiddleware(['USER', "ADMIN"]), controller.getTeacherByDiscipline);
 teacherRouter.post('/edit', roleMiddleware(["ADMIN"]), controller.editTeacher);
+teacherRouter.post("/delete", roleMiddleware(["ADMIN"]), controller.deleteTeacher);
 
 export { teacherRouter };

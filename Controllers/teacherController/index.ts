@@ -443,6 +443,74 @@ class teachersController {
             res.status(500).json({ message: 'Ошибка сервера' });
         }
     }
+
+    /**
+ * Удаление преподавателя
+ * @swagger
+ * /teacher/delete:
+ *   delete:
+ *     summary: Удалить преподавателя
+ *     description: Удаляет преподавателя по его идентификатору
+ *     tags: [teachers]
+  *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: id
+ *         description: Идентификатор преподавателя, которого нужно удалить
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: ObjectId
+ *     responses:
+ *       200:
+ *         description: Преподаватель успешно удален
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Сообщение об успешном удалении преподавателя
+ *       404:
+ *         description: Преподаватель не найден
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Сообщение о том, что преподаватель не был найден
+ *       500:
+ *         description: Внутренняя ошибка сервера
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Сообщение об ошибке сервера
+ */
+    async deleteTeacher(req: Request, res: Response) {
+        try {
+            const teacherId = req.query.id;
+
+            const existingTeacher = await Teachers.findById(teacherId);
+            if (!existingTeacher) {
+                return res.status(404).json({ message: "Преподаватель не найден" });
+            }
+
+            await Teachers.findByIdAndDelete(teacherId);
+
+            res.status(200).json({ message: "Преподаватель успешно удален" });
+        } catch (error) {
+            console.error('Ошибка:', error);
+            res.status(500).json({ message: 'Ошибка сервера' });
+        }
+    }
 }
 
 export { teachersController };
