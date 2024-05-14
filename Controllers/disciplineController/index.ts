@@ -223,6 +223,10 @@ class disciplineController {
   *       - disciplines
   *     security:
   *       - bearerAuth: []
+  *     parameters:
+  *       - in: query
+  *         name: id
+  *         description: Идентификатор группы длф получения её возможных дисциплин
   *     responses:
   *       200:
   *         description: Успешный запрос. Возвращает список дисциплин.
