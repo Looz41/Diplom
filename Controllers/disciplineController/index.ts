@@ -16,11 +16,11 @@ interface MongooseValidationError {
 class disciplineController {
 
     /**
-     * Добавление дисциплины
-     * @swagger
+     * @openapi
      * /discipline/add:
      *   post:
-     *     summary: Добавление дисциплины
+     *     summary: Создать новую дисциплину
+     *     description: Создает новую дисциплину с указанными параметрами.
      *     tags:
      *       - disciplines
      *     security:
@@ -34,57 +34,36 @@ class disciplineController {
      *             properties:
      *               name:
      *                 type: string
-     *                 description: Название дисциплины.
+     *                 description: Название дисциплины
      *               groups:
      *                 type: array
      *                 items:
-     *                   type: string
-     *                 description: Список названий групп, к которым относится дисциплина.
+     *                   type: object
+     *                   properties:
+     *                     groupName:
+     *                       type: string
+     *                       description: Название группы
+     *                     aH:
+     *                       type: number
+     *                       description: Количество часов аудиторных занятий
      *               teachers:
      *                 type: array
      *                 items:
      *                   type: string
-     *                 description: Список фамилий преподавателей, преподающих дисциплину.
+     *                   description: ФИО преподавателя
+     *                 description: Список преподавателей, преподающих дисциплину
      *               pc:
      *                 type: boolean
-     *                 description: Компьютерная ли дисциплина.
+     *                 description: Флаг наличия ПК для проведения занятий
      *     responses:
-     *       200:
-     *         description: Успешное добавление дисциплины.
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 message:
-     *                   type: string
-     *                   description: Сообщение об успешном добавлении дисциплины.
-     *       400:
-     *         description: Ошибка запроса. Возникает в случае неверных данных в запросе.
-     *         content:
-     *           application/json:
-     *             schema:
-     *               type: object
-     *               properties:
-     *                 message:
-     *                   type: string
-     *                   description: Сообщение об ошибке добавления дисциплины.
-     *                 errors:
-     *                   type: array
-     *                   items:
-     *                     type: object
-     *                     properties:
-     *                       param:
-     *                         type: string
-     *                         description: Имя параметра, содержащего ошибку.
-     *                       msg:
-     *                         type: string
-     *                         description: Сообщение об ошибке.
-     *                       value:
-     *                         type: any
-     *                         description: Значение параметра, содержащего ошибку.
-     *       500:
-     *         description: Ошибка сервера. Возникает в случае проблем на стороне сервера.
+     *       '200':
+     *         description: Дисциплина успешно создана
+     *       '400':
+     *         description: Неверный запрос, дисциплина уже существует или некорректные данные
+     *       '404':
+     *         description: Группа или преподаватель не найдены
+     *       '500':
+     *         description: Ошибка сервера
      */
     async addDiscipline(req: Request, res: Response) {
         try {
@@ -95,24 +74,25 @@ class disciplineController {
 
             const { name, groups, teachers, pc } = req.body;
 
-            const groupsIds = [];
-            for (const groupName of groups) {
-                let group = await Groups.findOne({ name: groupName });
-
+            const groupsWithIds = [];
+            for (const groupItem of groups) {
+                const { groupName, aH } = groupItem;
+                const group = await Groups.findOne({ name: groupName });
 
                 if (!group) {
-                    return res.status(404).json({ message: 'Группа не найден' });
+                    return res.status(404).json({ message: `Группа ${groupName} не найдена` });
                 }
 
-                groupsIds.push(group._id);
+                groupsWithIds.push({ item: group._id, aH });
             }
 
             const teachersIds = [];
             for (const teacherName of teachers) {
-                let teacher = await Teachers.findOne({ surname: teacherName.split(" ")[0] || "", name: teacherName.split(" ")[1] || "", patronymic: teacherName.split(" ")[2] || "" });
+                const [surname, name, patronymic] = teacherName.split(" ");
+                const teacher = await Teachers.findOne({ surname, name, patronymic });
 
                 if (!teacher) {
-                    return res.status(404).json({ message: 'Преподаватель не найден' });
+                    return res.status(404).json({ message: `Преподаватель ${teacherName} не найден` });
                 }
 
                 teachersIds.push(teacher._id);
@@ -123,7 +103,7 @@ class disciplineController {
                 return res.status(400).json({ error: `Дисциплина ${name} уже существует` });
             }
 
-            const discipline = new Disciplines({ name, groups: groupsIds, teachers: teachersIds, pc: pc || false });
+            const discipline = new Disciplines({ name, groups: groupsWithIds, teachers: teachersIds, pc: pc || false });
             await discipline.save();
 
             return res.json({ message: `Дисциплина ${name} была успешно создана.` });
@@ -267,13 +247,18 @@ class disciplineController {
   */
     async getDiscipline(req: Request, res: Response) {
         try {
-            const disciplines = await Disciplines.find()
+            let query = {};
+            if (req.query.groupId) {
+                query = { groups: req.query.groupId };
+            }
+
+            const disciplines = await Disciplines.find(query)
                 .select('_id name')
                 .exec();
 
             const formattedDisciplines = disciplines.map(discipline => ({
                 id: discipline._id,
-                name: discipline.name
+                name: discipline.name,
             }));
 
             res.json({ disciplines: formattedDisciplines });

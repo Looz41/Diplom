@@ -1,17 +1,33 @@
 import { Schema, model } from "mongoose";
-import mongoose from "mongoose";
 
-const DisciplineSchema = new mongoose.Schema({
+const DisciplineSchema = new Schema({
     name: {
         type: String,
         required: true,
         unique: true
     },
-    groups: [{
-        type: Schema.Types.ObjectId,
-        ref: 'Groups',
-        required: true,
-    }],
+    groups: [
+        {
+            item: {
+                type: Schema.Types.ObjectId,
+                ref: 'Groups',
+                required: true,
+            },
+            aH: {
+                type: Number,
+                required: true
+            },
+            burden: {
+                month: {
+                    type: Date,
+                    required: true
+                },
+                hH: {
+                    type: Number,
+                },
+            }
+        }
+    ],
     teachers: [{
         type: Schema.Types.ObjectId,
         ref: 'Teachers',
@@ -20,6 +36,6 @@ const DisciplineSchema = new mongoose.Schema({
     pc: {
         type: Boolean
     }
-})
+});
 
-export default model("Disciplines", DisciplineSchema)
+export default model("Disciplines", DisciplineSchema);
