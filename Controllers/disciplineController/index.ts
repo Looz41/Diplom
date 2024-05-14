@@ -259,7 +259,6 @@ class disciplineController {
 
             const disciplines = await Disciplines.find(query)
                 .select('name groups')
-                .populate('item')
                 .exec();
 
             const formattedDisciplines = disciplines.map(discipline => ({
