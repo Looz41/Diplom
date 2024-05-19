@@ -45,7 +45,7 @@ const options = {
             description: 'Документация api генерации расписания',
             contact: {
                 name: 'Клиент',
-                url: 'http://79.174.83.183:3000'
+                url: 'http://95.163.222.95:3000'
             },
         },
         components: {
