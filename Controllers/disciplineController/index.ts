@@ -258,11 +258,12 @@ class disciplineController {
             }
 
             const disciplines = await Disciplines.find(query)
-                .select('name groups')
+                .select('_id name groups')
                 .populate('groups.item', 'name')
                 .exec();
 
             const formattedDisciplines = disciplines.map(discipline => ({
+                id: discipline._id,
                 name: discipline.name,
                 groups: discipline.groups,
             }));
