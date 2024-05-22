@@ -134,9 +134,13 @@ class audithoriesController {
      *               name:
      *                 type: string
      *                 description: Новое имя аудитории.
+     *               pc:
+     *                 type: boolean
+     *                 description: Компьютерная аудитория.
      *             required:
      *               - id
      *               - name
+     *               - pc
      *     responses:
      *       '200':
      *         description: Успешное редактирование аудитории.
@@ -197,7 +201,7 @@ class audithoriesController {
                 return res.status(400).json({ error: 'Ошибка ввода', errors: errors.array() });
             }
 
-            const { id, name } = req.body;
+            const { id, name, pc } = req.body;
 
             if (!id || !name) {
                 return res.status(400).json({ error: 'Параметры id и name обязательны' });
@@ -209,6 +213,7 @@ class audithoriesController {
             }
 
             existingAudithor.name = name;
+            existingAudithor.pc = pc;
             await existingAudithor.save();
 
             res.json({ message: `Аудитория с id ${id} успешно отредактирована` });
@@ -335,14 +340,14 @@ class audithoriesController {
     async deleteAudit(req: Request, res: Response) {
         try {
             const auditId = req.query.id;
-    
+
             const existingAudit = await Audithories.findById(auditId);
             if (!existingAudit) {
                 return res.status(404).json({ message: "Аудитория не найдена" });
             }
-    
+
             await Audithories.findByIdAndDelete(auditId);
-    
+
             res.status(200).json({ message: "Аудитория успешно удалена" });
         } catch (error) {
             console.error('Ошибка:', error);
