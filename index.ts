@@ -36,6 +36,7 @@ app.use('/backend/teacher', teacherRouter);
 app.use('/backend/types', typesRouter);
 app.use('/backend/audithories', audithoriesRouter);
 app.use('/backend/schedule', scheduleRouter);
+app.use('/backend/uploads', express.static(path.join(__dirname, 'uploads')));
 
 const options = {
     definition: {

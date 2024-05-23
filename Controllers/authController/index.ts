@@ -126,7 +126,7 @@ class authController {
                 return res.status(400).json({ message: `Пользователь ${username} не существует` })
             }
             if (!user.isActivated) {
-                return res.status(403).json({ error: 'Адрес электронной почты не подтвержден', activateLink: `${process.env.SITEURL}/backend/auth/activate/${user.activationLink}` })
+                return res.status(403).json({ message: 'Адрес электронной почты не подтвержден' })
             }
             const validPassword = bcrypt.compareSync(password, user.password);
             if (!validPassword) {
