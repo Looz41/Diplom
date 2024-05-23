@@ -121,9 +121,12 @@ class authController {
     async login(req: Request, res: Response) {
         try {
             const { username, password } = req.body
-            const user = await User.findOne({ username })
+            const user = await User.findOne({ mail: username })
             if (!user) {
                 return res.status(400).json({ message: `Пользователь ${username} не существует` })
+            }
+            if (!user.isActivated) {
+                return res.status(403).json({ error: 'Адрес электронной почты не подтвержден', activateLink: `${process.env.SITEURL}/backend/auth/activate/${user.activationLink}` })
             }
             const validPassword = bcrypt.compareSync(password, user.password);
             if (!validPassword) {
