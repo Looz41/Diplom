@@ -29,13 +29,13 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     next();
 });
 
-app.use('/auth', authRouter);
-app.use('/discipline', disciplineRouter);
-app.use('/facultet', facultetRouter);
-app.use('/teacher', teacherRouter);
-app.use('/types', typesRouter);
-app.use('/audithories', audithoriesRouter);
-app.use('/schedule', scheduleRouter);
+app.use('/backend/auth', authRouter);
+app.use('/backend/discipline', disciplineRouter);
+app.use('/backend/facultet', facultetRouter);
+app.use('/backend/teacher', teacherRouter);
+app.use('/backend/types', typesRouter);
+app.use('/backend/audithories', audithoriesRouter);
+app.use('/backend/schedule', scheduleRouter);
 
 const options = {
     definition: {
