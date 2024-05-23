@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import path from 'path';
 import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
+require('dotenv').config();
 
 import {
     authRouter,
@@ -45,7 +46,7 @@ const options = {
             description: 'Документация api генерации расписания',
             contact: {
                 name: 'Клиент',
-                url: 'http://95.163.222.95:3000'
+                url: process.env.SITEURL
             },
         },
         components: {
@@ -59,12 +60,12 @@ const options = {
         },
         servers: [
             {
-                url: 'http://localhost:5000',
-                description: 'local',
+                url: `${process.env.SITEURL}/backend`,
+                description: 'Development server',
             },
             {
-                url: 'http://79.174.83.183:5000',
-                description: 'Development server',
+                url: 'http://localhost:5000',
+                description: 'local',
             },
         ],
     },
