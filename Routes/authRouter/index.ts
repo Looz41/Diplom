@@ -11,5 +11,6 @@ authRouter.post('/login', controller.login);
 authRouter.get('/users', roleMiddleware(['ADMIN']), controller.getUsers);
 authRouter.get('/addRole', controller.addRole);
 authRouter.get('/check', roleMiddleware(['ADMIN', "USER"]), controller.checkToken);
+authRouter.get('/activate/:link', controller.activate);
 
 export { authRouter };

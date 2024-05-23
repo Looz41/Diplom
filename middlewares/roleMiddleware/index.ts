@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { SecretKey } from "../../config";
+require('dotenv').config();
 const jwt = require('jsonwebtoken')
 
 export const roleMiddleware = (roles: Array<string>) => {
@@ -15,7 +15,7 @@ export const roleMiddleware = (roles: Array<string>) => {
                 return res.status(403).json({ message: 'Пользователь не авторизован' });
             }
 
-            const { roles: userRoles } = jwt.verify(token, SecretKey.secret) as { roles: string[] }; // Указываем тип для roles
+            const { roles: userRoles } = jwt.verify(token, process.env.SECRETKEY) as { roles: string[] }; // Указываем тип для roles
             let hasRole = false;
             userRoles.forEach((role: string) => {
                 if (roles.includes(role)) {

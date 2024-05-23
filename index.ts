@@ -94,7 +94,7 @@ process.on('uncaughtException', (err) => {
 
 const start = async () => {
     try {
-        await mongoose.connect('mongodb://127.0.0.1:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.2.5');
+        await mongoose.connect('mongodb://Looz1:Dogs2020@95.163.222.194:27017/admin');
         app.listen(PORT, () => console.log(`Running on port ${PORT}`));
     } catch (e) {
         console.warn(e);
