@@ -8,6 +8,7 @@ class UserService {
             throw new Error('Неккоректная ссылка авторизации')
         }
         user.isActivated = true;
+        delete user.activationLink;
         await user.save()
     }
 
@@ -21,6 +22,7 @@ class UserService {
 
         user.password = user.newPassword;
         delete user.newPassword;
+        delete user.restoreLink;
 
         await user.save()
     }
