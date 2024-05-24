@@ -133,7 +133,7 @@ class authController {
                 return res.status(400).json({ message: `Введен не верный пароль` })
             }
             const token = generateAccessToken(user._id, user.roles);
-            const { roles: userRoles } = jwt.verify(token, process.env.SECRETKEY) as { roles: string[] }; // Указываем тип для roles
+            const { roles: userRoles } = jwt.verify(token, process.env.SECRETKEY) as { roles: string[] };
             userRoles.forEach((role: string) => {
                 if (["ADMIN"].includes(role)) {
                     return res.json({ user: { token, role: "ADMIN" } })
@@ -238,9 +238,70 @@ class authController {
             return res.status(500).json({ message: 'Ошибка сервера' });
         }
     }
+
+    /**
+* Восстановление пароля
+* @swagger
+* /auth/restore:
+*   post:
+*     summary: Восстановление пароля
+*     tags: [auth]
+*     description: Восстановление пароля
+*     requestBody:
+*       required: true
+*       content:
+*         application/json:
+*           schema:
+*             type: object
+*             properties:
+*               username:
+*                 type: string
+*               password:
+*                 type: string
+*               newPassword:
+*                 type: string
+*             required:
+*               - username
+*               - password
+*               - newPassword
+*     responses:
+*       200:
+*         description: Пароль успешно обновлен
+*       400:
+*         description: Ошибка при обновлении пароля
+*/
+    async restore(req: Request, res: Response) {
+        try {
+            const { username, password, newPassword } = req.body;
+
+            if (!username || !password || !newPassword) {
+                return res.status(400).json({ message: 'Пожалуйста, предоставьте все необходимые данные' });
+            }
+
+            const user = await User.findOne({ mail: username });
+
+            if (!user) {
+                return res.status(404).json({ message: 'Пользователь не найден' });
+            }
+
+            const isPasswordCorrect = await bcrypt.compare(password, user.password);
+            if (!isPasswordCorrect) {
+                return res.status(401).json({ message: 'Неверный текущий пароль' });
+            }
+
+            const hashedNewPassword = await bcrypt.hash(newPassword, 7);
+
+            user.password = hashedNewPassword;
+            await user.save();
+
+            return res.status(200).json({ message: 'Пароль успешно обновлен' });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ message: 'Ошибка сервера' });
+        }
+    }
 }
 
-// Валидация полей "Имя" и "Пароль" при регистрации
 const registrationValidationRules = [
     body('username').trim().notEmpty().withMessage('Имя пользователя не должно быть пустым'),
     body('password').trim().isLength({ min: 6 }).withMessage('Пароль должен содержать минимум 6 символов')
