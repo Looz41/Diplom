@@ -240,13 +240,13 @@ class authController {
     }
 
     /**
-* Восстановление пароля
+* Смена пароля
 * @swagger
-* /auth/restore:
+* /auth/change:
 *   post:
-*     summary: Восстановление пароля
+*     summary: Смена пароля
 *     tags: [auth]
-*     description: Восстановление пароля
+*     description: Смена пароля
 *     requestBody:
 *       required: true
 *       content:
@@ -270,7 +270,7 @@ class authController {
 *       400:
 *         description: Ошибка при обновлении пароля
 */
-    async restore(req: Request, res: Response) {
+    async change(req: Request, res: Response) {
         try {
             const { username, password, newPassword } = req.body;
 
@@ -298,6 +298,73 @@ class authController {
         } catch (error) {
             console.error(error);
             return res.status(500).json({ message: 'Ошибка сервера' });
+        }
+    }
+
+      /**
+    * Восстановление пароля
+    * @swagger
+    * /auth/restore:
+    *   post:
+    *     summary: Восстановление пароля
+    *     tags: [auth]
+    *     description: Восстановление пароля
+    *     requestBody:
+    *       required: true
+    *       content:
+    *         application/json:
+    *           schema:
+    *             type: object
+    *             properties:
+    *               mail:
+    *                 type: string
+    *                 fornat: email
+    *               password:
+    *                 type: string
+    *             required:
+    *               - mail
+    *               - password
+    *     responses:
+    *       200:
+    *         description: Успешная регистрация, возврат токена
+    *       400:
+    *         description: Ошибка при регистрации
+    */
+      async restore(req: Request, res: Response) {
+        try {
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                return res.status(400).json({ error: 'Ошибка при регистрации', errors: errors.array() });
+            }
+
+            const { mail, password } = req.body;
+            if (!isEmail(mail)) {
+                return res.status(400).json({ error: `${mail} - не является адресом электронной почты` });
+            }
+
+            const candidate = await User.findOne({ mail });
+            if (candidate) {
+                return res.status(400).json({ error: 'Пользователь с таким адресом уже существует' });
+            }
+
+            const hashPassword = bcrypt.hashSync(password, 7);
+            const activationLink = uuid.v4();
+
+            const userRole = await Role.findOne({ value: 'USER' });
+            if (!userRole) {
+                return res.status(400).json({ message: 'Роль не найдена' });
+            }
+            const user = new User({ mail, password: hashPassword, roles: [userRole.value], activationLink });
+
+            await mailService.sendActivationMail(mail, `${process.env.SITEURL}/backend/auth/activate/${activationLink}`);
+
+            await user.save();
+
+            return res.json({ message: 'Код подтверждения успешно отправлен' });
+
+        } catch (e) {
+            console.error('Ошибка при регистрации:', e);
+            return res.status(500).json({ message: 'Ошибка при регистрации' });
         }
     }
 }

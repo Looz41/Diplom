@@ -8,7 +8,7 @@ const controller = new authController();
 
 authRouter.post('/registration', controller.registration);
 authRouter.post('/login', controller.login);
-authRouter.post('/restore', controller.restore);
+authRouter.post('/change', controller.change);
 authRouter.get('/users', roleMiddleware(['ADMIN']), controller.getUsers);
 authRouter.get('/addRole', controller.addRole);
 authRouter.get('/check', roleMiddleware(['ADMIN', "USER"]), controller.checkToken);
