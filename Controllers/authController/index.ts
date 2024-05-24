@@ -301,40 +301,40 @@ class authController {
         }
     }
 
-      /**
-    * Восстановление пароля
-    * @swagger
-    * /auth/restore:
-    *   post:
-    *     summary: Восстановление пароля
-    *     tags: [auth]
-    *     description: Восстановление пароля
-    *     requestBody:
-    *       required: true
-    *       content:
-    *         application/json:
-    *           schema:
-    *             type: object
-    *             properties:
-    *               mail:
-    *                 type: string
-    *                 fornat: email
-    *               password:
-    *                 type: string
-    *             required:
-    *               - mail
-    *               - password
-    *     responses:
-    *       200:
-    *         description: Успешная регистрация, возврат токена
-    *       400:
-    *         description: Ошибка при регистрации
-    */
-      async restore(req: Request, res: Response) {
+    /**
+  * Восстановление пароля
+  * @swagger
+  * /auth/restorePass:
+  *   post:
+  *     summary: Восстановление пароля
+  *     tags: [auth]
+  *     description: Восстановление пароля
+  *     requestBody:
+  *       required: true
+  *       content:
+  *         application/json:
+  *           schema:
+  *             type: object
+  *             properties:
+  *               mail:
+  *                 type: string
+  *                 fornat: email
+  *               password:
+  *                 type: string
+  *             required:
+  *               - mail
+  *               - password
+  *     responses:
+  *       200:
+  *         description: Сообщение успешно отправлено на почту
+  *       400:
+  *         description: Ошибка при отправке сообщения
+  */
+    async restorePass(req: Request, res: Response) {
         try {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
-                return res.status(400).json({ error: 'Ошибка при регистрации', errors: errors.array() });
+                return res.status(400).json({ error: 'Ошибка при восстановлении', errors: errors.array() });
             }
 
             const { mail, password } = req.body;
@@ -343,28 +343,37 @@ class authController {
             }
 
             const candidate = await User.findOne({ mail });
-            if (candidate) {
-                return res.status(400).json({ error: 'Пользователь с таким адресом уже существует' });
+            if (!candidate) {
+                return res.status(400).json({ error: 'Пользователь не найден' });
             }
 
             const hashPassword = bcrypt.hashSync(password, 7);
-            const activationLink = uuid.v4();
+            const restoreLink = uuid.v4();
 
-            const userRole = await Role.findOne({ value: 'USER' });
-            if (!userRole) {
-                return res.status(400).json({ message: 'Роль не найдена' });
-            }
-            const user = new User({ mail, password: hashPassword, roles: [userRole.value], activationLink });
+            candidate.restoreLink = restoreLink;
+            candidate.newPassword = hashPassword;
 
-            await mailService.sendActivationMail(mail, `${process.env.SITEURL}/backend/auth/activate/${activationLink}`);
+            await mailService.sendRestoreMail(mail, `${process.env.SITEURL}/backend/auth/restore/${restoreLink}`);
 
-            await user.save();
+            await candidate.save();
 
-            return res.json({ message: 'Код подтверждения успешно отправлен' });
+            return res.json({ message: 'Сообщение успешно отправлено на почту' });
 
         } catch (e) {
             console.error('Ошибка при регистрации:', e);
-            return res.status(500).json({ message: 'Ошибка при регистрации' });
+            return res.status(500).json({ message: 'Ошибка при отправке сообщения' });
+        }
+    }
+
+    async restore(req: Request, res: Response) {
+        try {
+            const restoreLink = req.params.link;
+            await userService.restore(restoreLink);
+            return res.redirect(process.env.SITEURL);
+
+        } catch (error) {
+            console.log(error)
+            return res.status(500).json({ message: 'Ошибка сервера' });
         }
     }
 }

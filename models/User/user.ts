@@ -10,11 +10,17 @@ const User = new Schema({
         type: String,
         required: true
     },
+    newPassword: {
+        type: String,
+    },
     isActivated: {
         type: Boolean,
         default: false,
     },
     activationLink: {
+        type: String,
+    },
+    restoreLink: {
         type: String,
     },
     roles: [{
