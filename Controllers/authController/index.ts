@@ -66,7 +66,7 @@ class authController {
 
             const candidate = await User.findOne({ mail });
             if (candidate) {
-                return res.status(400).json({ error: 'Пользователь с таким адресом уже существует' });
+                return res.status(400).json({ error: 'Пользователь уже существует' });
             }
 
             const hashPassword = bcrypt.hashSync(password, 7);
@@ -82,7 +82,7 @@ class authController {
 
             await user.save();
 
-            return res.json({ message: 'Код подтверждения успешно отправлен' });
+            return res.json({ message: 'Письмо успешно отправлено' });
 
         } catch (e) {
             console.error('Ошибка при регистрации:', e);
@@ -123,14 +123,14 @@ class authController {
             const { username, password } = req.body
             const user = await User.findOne({ mail: username })
             if (!user) {
-                return res.status(400).json({ message: `Пользователь ${username} не существует` })
+                return res.status(404).json({ message: `Пользователь ${username} не существует` })
             }
             if (!user.isActivated) {
                 return res.status(403).json({ message: 'Адрес электронной почты не подтвержден' })
             }
             const validPassword = bcrypt.compareSync(password, user.password);
             if (!validPassword) {
-                return res.status(400).json({ message: `Введен не верный пароль` })
+                return res.status(403).json({ message: `Введен не верный пароль` })
             }
             const token = generateAccessToken(user._id, user.roles);
             const { roles: userRoles } = jwt.verify(token, process.env.SECRETKEY) as { roles: string[] };

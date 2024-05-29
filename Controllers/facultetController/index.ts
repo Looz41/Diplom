@@ -253,6 +253,15 @@ class facultetController {
             existingFacultet.name = name;
             await existingFacultet.save();
 
+            for (const groupName of groups) {
+                const editingGroup = await Groups.findOne({name: groupName})
+
+                editingGroup.name = groupName;
+                editingGroup.course = groupName.split('-К')[1].slice(0, 1)
+
+                await editingGroup.save();
+            }
+
             res.json({ result: true, message: `Факультет с id ${id} успешно отредактирован` });
         } catch (error) {
             console.error(error);
@@ -329,21 +338,37 @@ class facultetController {
                         from: "groups",
                         localField: "_id",
                         foreignField: "facultet",
-                        as: "groups"
+                        as: "groups",
+                        pipeline: [
+                            {
+                                $group: {
+                                    _id: "$course",
+                                    groups: {
+                                        $push: {
+                                            _id: "$_id",
+                                            name: "$name"
+                                        }
+                                    }
+                                }
+                            }
+                        ]
                     }
                 },
                 {
-                    $unwind: "$groups"
+                    $unwind: {
+                        path: "$groups",
+                        preserveNullAndEmptyArrays: true
+                    }
                 },
                 {
                     $group: {
                         _id: {
                             facultetId: "$_id",
-                            courseId: "$groups.course"
+                            courseId: "$groups._id"
                         },
                         facultetName: { $first: "$name" },
-                        course: { $first: "$groups.course" },
-                        groups: { $push: { _id: "$groups._id", name: "$groups.name" } }
+                        course: { $first: "$groups._id" },
+                        groups: { $first: "$groups.groups" }
                     }
                 },
                 {
@@ -354,6 +379,17 @@ class facultetController {
                             $push: {
                                 name: "$course",
                                 groups: "$groups"
+                            }
+                        }
+                    }
+                },
+                {
+                    $addFields: {
+                        courses: {
+                            $filter: {
+                                input: "$courses",
+                                as: "course",
+                                cond: { $ne: ["$$course.name", null] }
                             }
                         }
                     }
@@ -481,67 +517,67 @@ class facultetController {
         }
     }
 
-     /**
- * Удаление факультета
- * @swagger
- * /facultet/delete:
- *   post:
- *     summary: Удалить факультет
- *     description: Удаляет факультет по его идентификатору
- *     tags: [facultet]
-  *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: id
- *         description: Идентификатор факультета, который нужно удалить
- *         required: true
- *         schema:
- *           type: string
- *           format: ObjectId
- *     responses:
- *       200:
- *         description: Факультет успешно удален
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   description: Сообщение об успешном удалении аудитории
- *       404:
- *         description: Факультет не найден
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   description: Сообщение о том, что факультет не был найден
- *       500:
- *         description: Внутренняя ошибка сервера
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   description: Сообщение об ошибке сервера
- */
-     async deleteFacultet(req: Request, res: Response) {
+    /**
+* Удаление факультета
+* @swagger
+* /facultet/delete:
+*   post:
+*     summary: Удалить факультет
+*     description: Удаляет факультет по его идентификатору
+*     tags: [facultet]
+ *     security:
+*       - bearerAuth: []
+*     parameters:
+*       - in: query
+*         name: id
+*         description: Идентификатор факультета, который нужно удалить
+*         required: true
+*         schema:
+*           type: string
+*           format: ObjectId
+*     responses:
+*       200:
+*         description: Факультет успешно удален
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 message:
+*                   type: string
+*                   description: Сообщение об успешном удалении аудитории
+*       404:
+*         description: Факультет не найден
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 message:
+*                   type: string
+*                   description: Сообщение о том, что факультет не был найден
+*       500:
+*         description: Внутренняя ошибка сервера
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 message:
+*                   type: string
+*                   description: Сообщение об ошибке сервера
+*/
+    async deleteFacultet(req: Request, res: Response) {
         try {
             const facultettId = req.query.id;
-    
+
             const existingFacultet = await Facultets.findById(facultettId);
             if (!existingFacultet) {
                 return res.status(404).json({ message: "Факультет не найден" });
             }
-    
+
             await Facultets.findByIdAndDelete(facultettId);
-    
+
             res.status(200).json({ message: "Факультет успешно удален" });
         } catch (error) {
             console.error('Ошибка:', error);
