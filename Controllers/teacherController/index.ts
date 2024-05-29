@@ -8,7 +8,7 @@ import mongoose from "mongoose";
 
 const { validationResult } = require('express-validator')
 
-type TeacherWithBurden = typeof Teachers & { surname: string, _id: string, aH: number, burden: { hH?: number; mounth?: Date; }[] };
+type TeacherWithBurden = typeof Teachers & { patronymic: string, surname: string, _id: string, aH: number, burden: { hH?: number; mounth?: Date; }[] };
 
 const getTeachersByDate = (teachers: TeacherWithBurden[], date: Date): any[] => {
     const targetMonth = date.getMonth();
@@ -25,6 +25,8 @@ const getTeachersByDate = (teachers: TeacherWithBurden[], date: Date): any[] => 
         return {
             _id: teacher._id,
             surname: teacher.surname,
+            name: teacher.name,
+            patronymic: teacher.patronymic,
             aH: teacher.aH,
             burden: filteredBurden
         };
