@@ -253,13 +253,16 @@ class facultetController {
             existingFacultet.name = name;
             await existingFacultet.save();
 
+            await Groups.deleteMany({ facultet: id });
+
             for (const groupName of groups) {
-                const editingGroup = await Groups.findOne({name: groupName})
+                const newGroup = new Groups({
+                    name: groupName,
+                    course: groupName.split('-К')[1].slice(0, 1),
+                    facultet: id
+                });
 
-                editingGroup.name = groupName;
-                editingGroup.course = groupName.split('-К')[1].slice(0, 1)
-
-                await editingGroup.save();
+                await newGroup.save();
             }
 
             res.json({ result: true, message: `Факультет с id ${id} успешно отредактирован` });
