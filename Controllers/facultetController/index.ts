@@ -237,10 +237,10 @@ class facultetController {
                 return;
             }
 
-            const { id, name, groups } = req.body;
+            const { id, name } = req.body;
 
-            if (!id || !name || !groups) {
-                res.status(400).json({ result: false, message: 'Параметры id, name и groups обязательны' });
+            if (!id || !name) {
+                res.status(400).json({ result: false, message: 'Параметры id, name обязательны' });
                 return;
             }
 
@@ -252,18 +252,6 @@ class facultetController {
 
             existingFacultet.name = name;
             await existingFacultet.save();
-
-            await Groups.deleteMany({ facultet: id });
-
-            for (const groupName of groups) {
-                const newGroup = new Groups({
-                    name: groupName,
-                    course: groupName.split('-К')[1].slice(0, 1),
-                    facultet: id
-                });
-
-                await newGroup.save();
-            }
 
             res.json({ result: true, message: `Факультет с id ${id} успешно отредактирован` });
         } catch (error) {
