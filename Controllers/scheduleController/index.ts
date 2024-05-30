@@ -186,7 +186,7 @@ class scheduleController {
                 discipline.groups.forEach(group => {
                     const burdenItem = group.burden.find(burden => {
                         const burdenDate = burden.month;
-                        return burdenDate.getMonth() === date.getMonth() && burdenDate.getFullYear() === date.getFullYear();
+                        return burdenDate.getMonth() === new Date(date).getMonth() && burdenDate.getFullYear() === new Date(date).getFullYear();
                     });
 
                     if (!burdenItem) {
