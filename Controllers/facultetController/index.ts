@@ -679,7 +679,7 @@ class facultetController {
 
             const existingGroup = await Groups.findOne({ _id: id });
             if (!existingGroup) {
-                return res.status(404).json({ message: "Группа не найденв" });
+                return res.status(404).json({ error: "Группа не найденв" });
             }
 
             existingGroup.name = name;
@@ -691,6 +691,74 @@ class facultetController {
             res.status(500).json({ message: 'Ошибка сервера' });
         }
     }
+
+        /**
+* Удаление факультета
+* @swagger
+* /facultet/deleteGroup:
+*   post:
+*     summary: Удалить группу
+*     description: Удаляет группу по его идентификатору
+*     tags: [facultet]
+ *     security:
+*       - bearerAuth: []
+*     parameters:
+*       - in: query
+*         name: id
+*         description: Идентификатор группу, который нужно удалить
+*         required: true
+*         schema:
+*           type: string
+*           format: ObjectId
+*     responses:
+*       200:
+*         description: Группа успешно удалена
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 message:
+*                   type: string
+*                   description: Сообщение об успешном удалении группы
+*       404:
+*         description: Группа не найдена
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 message:
+*                   type: string
+*                   description: Сообщение о том, что группа не был найдена
+*       500:
+*         description: Внутренняя ошибка сервера
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 message:
+*                   type: string
+*                   description: Сообщение об ошибке сервера
+*/
+async deleteGroup(req: Request, res: Response) {
+    try {
+        const groupId = req.query.id;
+
+        const existingGroup = await Groups.findOne({_id: groupId});
+        if (!existingGroup) {
+            return res.status(404).json({ message: "Группа не найдена" });
+        }
+
+        await Groups.findByIdAndDelete(existingGroup);
+
+        res.status(200).json({ message: "Группа успешно удалена" });
+    } catch (error) {
+        console.error('Ошибка:', error);
+        res.status(500).json({ message: 'Ошибка сервера' });
+    }
+}
 }
 
 export { facultetController };

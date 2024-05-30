@@ -11,5 +11,6 @@ facultetRouter.get("/getOne", roleMiddleware(['ADMIN', "USER"]), controller.getF
 facultetRouter.post("/edit", roleMiddleware(['ADMIN']), controller.editFacultet);
 facultetRouter.post("/delete", roleMiddleware(["ADMIN"]), controller.deleteFacultet);
 facultetRouter.post("/editGroup", roleMiddleware(["ADMIN"]), controller.editGroup);
+facultetRouter.post("/deleteGroup", roleMiddleware(["ADMIN"]), controller.deleteGroup);
 
 export { facultetRouter };
