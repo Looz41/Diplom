@@ -135,22 +135,6 @@ class disciplineController {
  *               name:
  *                 type: string
  *                 description: Новое название дисциплины.
- *               groups:
- *                 type: array
- *                 items:
- *                   type: object
- *                   properties:
- *                     groupName:
- *                       type: string
- *                       description: Название группы
- *                     aH:
- *                       type: number
- *                       description: Количество часов аудиторных занятий
- *               teachers:
- *                 type: array
- *                 items:
- *                   type: string
- *                 description: Новый список фамилий преподавателей, преподающих дисциплину.
  *               pc:
  *                 type: boolean
  *                 description: ПК.
@@ -195,10 +179,10 @@ class disciplineController {
                 return res.status(400).json({ error: 'Ошибка запроса', errors: errors.array() });
             }
 
-            const { id, name, groups, teachers, pc } = req.body;
+            const { id, name, pc } = req.body;
 
-            if (!id || !name || !groups || !teachers) {
-                return res.status(400).json({ error: 'Параметры id, name, groups, teachers и pc обязательны' });
+            if (!id || !name) {
+                return res.status(400).json({ error: 'Параметры id, name и pc обязательны' });
             }
 
             const existingDiscipline = await Disciplines.findById(id);
@@ -207,8 +191,6 @@ class disciplineController {
             }
 
             existingDiscipline.name = name;
-            existingDiscipline.groups = groups;
-            existingDiscipline.teachers = teachers;
             existingDiscipline.pc = pc;
             await existingDiscipline.save();
 
