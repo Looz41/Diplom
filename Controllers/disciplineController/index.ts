@@ -461,17 +461,17 @@ class disciplineController {
 
             const discipline = await Disciplines.findById(disciplineId);
             if (!discipline) {
-                return res.status(404).json({ message: "Дисциплина не найдена" });
+                return res.status(404).json({ error: "Дисциплина не найдена" });
             }
 
             const group = await Groups.findById(groupId);
             if (!group) {
-                return res.status(404).json({ message: "Группа не найдена" });
+                return res.status(404).json({ error: "Группа не найдена" });
             }
 
             const groupExists = discipline.groups.some(g => g.item.toString() === groupId);
             if (groupExists) {
-                return res.status(400).json({ message: "Группа уже добавлена в дисциплину" });
+                return res.status(400).json({ error: "Группа уже добавлена в дисциплину" });
             }
 
             discipline.groups.push({ item: groupId, aH });
@@ -484,6 +484,108 @@ class disciplineController {
         }
     }
 
+    /**
+ * @swagger
+ * /discipline/deleteGroupFromDiscipline:
+ *   post:
+ *     summary: Удаление группы из дисциплины
+ *     tags: [Disciplines]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               disciplineId:
+ *                 type: string
+ *                 description: Идентификатор дисциплины
+ *                 example: "60d21b4667d0d8992e610c85"
+ *               groupId:
+ *                 type: string
+ *                 description: Идентификатор группы
+ *                 example: "60d21b4867d0d8992e610c86"
+ *     responses:
+ *       200:
+ *         description: Группа успешно удалена из дисциплины
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Сообщение об успешном удалении группы из дисциплины
+ *                 discipline:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     groups:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           item:
+ *                             type: string
+ *                           aH:
+ *                             type: number
+ *                           burden:
+ *                             type: array
+ *                             items:
+ *                               type: object
+ *                               properties:
+ *                                 month:
+ *                                   type: string
+ *                                   format: date
+ *                                 hH:
+ *                                   type: number
+ *       404:
+ *         description: Дисциплина или группа не найдена
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       500:
+ *         description: Внутренняя ошибка сервера
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ */
+    async deleteGroupFromDiscipline(req: Request, res: Response) {
+        try {
+            const { disciplineId, groupId } = req.body;
+    
+            const discipline = await Disciplines.findById(disciplineId);
+            if (!discipline) {
+                return res.status(404).json({ error: "Дисциплина не найдена" });
+            }
+    
+            const groupIndex = discipline.groups.findIndex(g => g.item.toString() === groupId);
+            if (groupIndex === -1) {
+                return res.status(404).json({ error: "Группа не найдена в дисциплине" });
+            }
+    
+            discipline.groups.splice(groupIndex, 1);
+            await discipline.save();
+    
+            res.status(200).json({ message: "Группа успешно удалена из дисциплины", discipline });
+        } catch (error) {
+            console.error('Ошибка:', error);
+            res.status(500).json({ message: 'Ошибка сервера' });
+        }
+    }
 }
 
 export { disciplineController };
