@@ -670,8 +670,15 @@ class facultetController {
                 return res.status(404).json({ error: "Группа не найденв" });
             }
 
+            const invalidGroup = !name.includes('-К');
+            if (invalidGroup) {
+                res.status(400).json({ result: false, message: `Некорректные названия группы - ${name}. Название группы должно содержать "-К"` });
+                return;
+            }
+
             existingGroup.name = name;
-            await existingGroup.save()
+            existingGroup.course = name.split('-К')[1].slice(0, 1),
+                await existingGroup.save()
 
             res.status(200).json({ message: "Факультет успешно удален" });
         } catch (error) {
@@ -680,7 +687,7 @@ class facultetController {
         }
     }
 
-        /**
+    /**
 * Удаление факультета
 * @swagger
 * /facultet/deleteGroup:
@@ -688,7 +695,7 @@ class facultetController {
 *     summary: Удалить группу
 *     description: Удаляет группу по его идентификатору
 *     tags: [facultet]
- *     security:
+*     security:
 *       - bearerAuth: []
 *     parameters:
 *       - in: query
@@ -730,23 +737,127 @@ class facultetController {
 *                   type: string
 *                   description: Сообщение об ошибке сервера
 */
-async deleteGroup(req: Request, res: Response) {
-    try {
-        const groupId = req.query.id;
+    async deleteGroup(req: Request, res: Response) {
+        try {
+            const groupId = req.query.id;
 
-        const existingGroup = await Groups.findOne({_id: groupId});
-        if (!existingGroup) {
-            return res.status(404).json({ message: "Группа не найдена" });
+            const existingGroup = await Groups.findOne({ _id: groupId });
+            if (!existingGroup) {
+                return res.status(404).json({ message: "Группа не найдена" });
+            }
+
+            await Groups.findByIdAndDelete(existingGroup);
+
+            res.status(200).json({ message: "Группа успешно удалена" });
+        } catch (error) {
+            console.error('Ошибка:', error);
+            res.status(500).json({ message: 'Ошибка сервера' });
         }
-
-        await Groups.findByIdAndDelete(existingGroup);
-
-        res.status(200).json({ message: "Группа успешно удалена" });
-    } catch (error) {
-        console.error('Ошибка:', error);
-        res.status(500).json({ message: 'Ошибка сервера' });
     }
-}
+
+    /**
+ * Добавление группы к факультету
+ * @swagger
+ * /addGroupToFacult:
+ *   post:
+ *     summary: Добавить группу к факультету
+ *     description: Добавляет новую группу к указанному факультету.
+*     tags: [facultet]
+ *     security:
+*       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *                 description: Идентификатор факультета
+ *               groupName:
+ *                 type: string
+ *                 description: Название группы
+ *             required:
+ *               - id
+ *               - groupName
+ *     responses:
+ *       '200':
+ *         description: Группа успешно добавлена
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Сообщение об успешном добавлении группы
+ *       '400':
+ *         description: Некорректный запрос или группа уже существует
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Сообщение о некорректном запросе или о том, что группа уже существует
+ *       '404':
+ *         description: Факультет не найден
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Сообщение о том, что факультет не найден
+ *       '500':
+ *         description: Ошибка сервера
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Сообщение об ошибке сервера
+ */
+    async addGroupToFacult(req: Request, res: Response) {
+        try {
+            const { id, groupName } = req.body;
+
+            const existingFacultet = await Facultets.findOne({ _id: id });
+            if (!existingFacultet) {
+                return res.status(404).json({ message: "Факультет не найден" });
+            }
+
+            const existingGroup = await Groups.findOne({ _id: id });
+            if (existingGroup) {
+                return res.status(400).json({ message: "Группа уже существует" });
+            }
+
+            const invalidGroup = !groupName.includes('-К');
+            if (invalidGroup) {
+                res.status(400).json({ result: false, message: `Некорректные названия группы - ${groupName}. Название группы должно содержать "-К"` });
+                return;
+            }
+
+            const newGroup = new Groups({
+                name: groupName,
+                course: groupName.split('-К')[1].slice(0, 1),
+                facultet: id
+            });
+
+            await newGroup.save();
+
+
+            res.status(200).json({ message: "Группа успешно добавлена" });
+        } catch (error) {
+            console.error('Ошибка:', error);
+            res.status(500).json({ message: 'Ошибка сервера' });
+        }
+    }
 }
 
 export { facultetController };
