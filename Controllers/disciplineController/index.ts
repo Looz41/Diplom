@@ -367,6 +367,123 @@ class disciplineController {
             res.status(500).json({ message: 'Ошибка сервера' });
         }
     }
+
+    /**
+ * @swagger
+ * /discipline/addGroupToDiscipline:
+ *   post:
+ *     summary: Добавление группы в дисциплину
+ *     tags: [Disciplines]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               disciplineId:
+ *                 type: string
+ *                 description: Идентификатор дисциплины
+ *                 example: "60d21b4667d0d8992e610c85"
+ *               groupId:
+ *                 type: string
+ *                 description: Идентификатор группы
+ *                 example: "60d21b4867d0d8992e610c86"
+ *               aH:
+ *                 type: number
+ *                 description: Значение AH
+ *                 example: 42
+ *               burden:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     month:
+ *                       type: string
+ *                       format: date
+ *                       description: Месяц
+ *                       example: "2023-05-31"
+ *                     hH:
+ *                       type: number
+ *                       description: Значение HH
+ *                       example: 10
+ *     responses:
+ *       200:
+ *         description: Группа успешно добавлена в дисциплину
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Сообщение об успешном добавлении группы в дисциплину
+ *                 discipline:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     groups:
+ *                       type: array
+ *                       items:
+ *                         type: object
+ *                         properties:
+ *                           item:
+ *                             type: string
+ *                           aH:
+ *                             type: number
+ *       400:
+ *         description: Ошибка в запросе. Группа уже существует в дисциплине или группа/дисциплина не найдена
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *       500:
+ *         description: Внутренняя ошибка сервера
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ */
+    async addGroupToDiscipline(req: Request, res: Response) {
+        try {
+            const { disciplineId, groupId, aH } = req.body;
+
+            const discipline = await Disciplines.findById(disciplineId);
+            if (!discipline) {
+                return res.status(404).json({ message: "Дисциплина не найдена" });
+            }
+
+            const group = await Groups.findById(groupId);
+            if (!group) {
+                return res.status(404).json({ message: "Группа не найдена" });
+            }
+
+            const groupExists = discipline.groups.some(g => g.item.toString() === groupId);
+            if (groupExists) {
+                return res.status(400).json({ message: "Группа уже добавлена в дисциплину" });
+            }
+
+            discipline.groups.push({ item: groupId, aH });
+            await discipline.save();
+
+            res.status(200).json({ message: "Группа успешно добавлена в дисциплину", discipline });
+        } catch (error) {
+            console.error('Ошибка:', error);
+            res.status(500).json({ message: 'Ошибка сервера' });
+        }
+    }
+
 }
 
 export { disciplineController };
