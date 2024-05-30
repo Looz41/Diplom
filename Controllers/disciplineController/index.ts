@@ -138,8 +138,14 @@ class disciplineController {
  *               groups:
  *                 type: array
  *                 items:
- *                   type: string
- *                 description: Новый список названий групп, к которым относится дисциплина.
+ *                   type: object
+ *                   properties:
+ *                     groupName:
+ *                       type: string
+ *                       description: Название группы
+ *                     aH:
+ *                       type: number
+ *                       description: Количество часов аудиторных занятий
  *               teachers:
  *                 type: array
  *                 items:
