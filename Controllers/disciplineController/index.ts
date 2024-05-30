@@ -202,41 +202,76 @@ class disciplineController {
     }
 
     /**
-  * Получение списка дисциплин
-  * @swagger
-  * /discipline/get:
-  *   get:
-  *     summary: Получение списка дисциплин
-  *     tags:
-  *       - disciplines
-  *     security:
-  *       - bearerAuth: []
-  *     parameters:
-  *       - in: query
-  *         name: groupId
-  *         description: Идентификатор группы для получения её возможных дисциплин
-  *     responses:
-  *       200:
-  *         description: Успешный запрос. Возвращает список дисциплин.
-  *         content:
-  *           application/json:
-  *             schema:
-  *               type: object
-  *               properties:
-  *                 disciplines:
-  *                   type: array
-  *                   items:
-  *                     type: object
-  *                     properties:
-  *                       id:
-  *                         type: string
-  *                         description: Уникальный идентификатор дисциплины.
-  *                       name:
-  *                         type: string
-  *                         description: Название дисциплины.
-  *       500:
-  *         description: Ошибка сервера. Возникает в случае проблем на стороне сервера.
-  */
+      * Получение списка дисциплин
+      * @swagger
+      * /discipline/get:
+      *   get:
+      *     summary: Получение списка дисциплин
+      *     tags:
+      *       - disciplines
+      *     security:
+      *       - bearerAuth: []
+      *     parameters:
+      *       - in: query
+      *         name: groupId
+      *         description: Идентификатор группы для получения её возможных дисциплин
+      *         required: false
+      *         schema:
+      *           type: string
+      *     responses:
+      *       200:
+      *         description: Успешный запрос. Возвращает список дисциплин.
+      *         content:
+      *           application/json:
+      *             schema:
+      *               type: object
+      *               properties:
+      *                 disciplines:
+      *                   type: array
+      *                   items:
+      *                     type: object
+      *                     properties:
+      *                       id:
+      *                         type: string
+      *                         description: Уникальный идентификатор дисциплины.
+      *                       name:
+      *                         type: string
+      *                         description: Название дисциплины.
+      *                       groups:
+      *                         type: array
+      *                         items:
+      *                           type: object
+      *                           properties:
+      *                             item:
+      *                               type: object
+      *                               properties:
+      *                                 _id:
+      *                                   type: string
+      *                                   description: Уникальный идентификатор группы.
+      *                                 name:
+      *                                   type: string
+      *                                   description: Название группы.
+      *                             aH:
+      *                               type: number
+      *                               description: Значение AH.
+      *                             burden:
+      *                               type: array
+      *                               items:
+      *                                 type: number
+      *                       pc:
+      *                         type: boolean
+      *                         description: ПК.
+      *       500:
+      *         description: Ошибка сервера. Возникает в случае проблем на стороне сервера.
+      *         content:
+      *           application/json:
+      *             schema:
+      *               type: object
+      *               properties:
+      *                 message:
+      *                   type: string
+      *                   description: Сообщение об ошибке сервера.
+      */
     async getDiscipline(req: Request, res: Response) {
         try {
             let query: QueryType = {};
@@ -246,7 +281,7 @@ class disciplineController {
             }
 
             const disciplines = await Disciplines.find(query)
-                .select('_id name groups')
+                .select('_id name groups pc')
                 .populate('groups.item', 'name')
                 .exec();
 
