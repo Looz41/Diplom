@@ -587,6 +587,110 @@ class facultetController {
             res.status(500).json({ message: 'Ошибка сервера' });
         }
     }
+
+    /**
+ * Редактирование факультета
+ * @swagger
+ * /facultet/editGroup:
+ *   post:
+ *     summary: Редактирование факультета
+ *     tags: [facultet]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: string
+ *                 description: Уникальный идентификатор группы
+ *               name:
+ *                 type: string
+ *                 description: Новое название группы
+ *     responses:
+ *       '200':
+ *         description: Успешное редактирование факультета
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 result:
+ *                   type: boolean
+ *                   description: Флаг успешного редактирования
+ *                 message:
+ *                   type: string
+ *                   description: Сообщение об успешном редактировании
+ *       '400':
+ *         description: Ошибка валидации или некорректные данные
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 result:
+ *                   type: boolean
+ *                   description: Флаг ошибки
+ *                 message:
+ *                   type: string
+ *                   description: Сообщение об ошибке
+ *                 errors:
+ *                   type: array
+ *                   description: Список ошибок валидации
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       param:
+ *                         type: string
+ *                         description: Имя параметра с ошибкой
+ *                       msg:
+ *                         type: string
+ *                         description: Текст ошибки
+ *                       value:
+ *                         type: string
+ *                         description: Некорректное значение параметра
+ *       '404':
+ *         description: Факультет не найден
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *                   description: Сообщение об ошибке
+ *       '500':
+ *         description: Внутренняя ошибка сервера
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Сообщение об ошибке сервера
+ */
+    async editGroup(req: Request, res: Response) {
+        try {
+            const { id, name } = req.body;
+
+            const existingGroup = await Groups.findOne({ _id: id });
+            if (!existingGroup) {
+                return res.status(404).json({ message: "Группа не найденв" });
+            }
+
+            existingGroup.name = name;
+            await existingGroup.save()
+
+            res.status(200).json({ message: "Факультет успешно удален" });
+        } catch (error) {
+            console.error('Ошибка:', error);
+            res.status(500).json({ message: 'Ошибка сервера' });
+        }
+    }
 }
 
 export { facultetController };
