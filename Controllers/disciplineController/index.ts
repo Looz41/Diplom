@@ -254,6 +254,7 @@ class disciplineController {
                 id: discipline._id,
                 name: discipline.name,
                 groups: discipline.groups,
+                pc: discipline.pc
             }));
 
             res.json({ disciplines: formattedDisciplines });
