@@ -758,7 +758,7 @@ class facultetController {
     /**
  * Добавление группы к факультету
  * @swagger
- * /addGroupToFacult:
+* /facultet/addGroupToFacult:
  *   post:
  *     summary: Добавить группу к факультету
  *     description: Добавляет новую группу к указанному факультету.
@@ -829,17 +829,17 @@ class facultetController {
 
             const existingFacultet = await Facultets.findOne({ _id: id });
             if (!existingFacultet) {
-                return res.status(404).json({ message: "Факультет не найден" });
+                return res.status(404).json({ error: "Факультет не найден" });
             }
 
             const existingGroup = await Groups.findOne({ _id: id });
             if (existingGroup) {
-                return res.status(400).json({ message: "Группа уже существует" });
+                return res.status(400).json({ error: "Группа уже существует" });
             }
 
             const invalidGroup = !groupName.includes('-К');
             if (invalidGroup) {
-                res.status(400).json({ result: false, message: `Некорректные названия группы - ${groupName}. Название группы должно содержать "-К"` });
+                res.status(400).json({ result: false, error: `Некорректные названия группы - ${groupName}. Название группы должно содержать "-К"` });
                 return;
             }
 
