@@ -151,9 +151,9 @@ class disciplineController {
  *                 items:
  *                   type: string
  *                 description: Новый список фамилий преподавателей, преподающих дисциплину.
- *               aH:
- *                 type: number
- *                 description: Новое количество академических часов.
+ *               pc:
+ *                 type: boolean
+ *                 description: ПК.
  *     responses:
  *       200:
  *         description: Успешное редактирование дисциплины.
