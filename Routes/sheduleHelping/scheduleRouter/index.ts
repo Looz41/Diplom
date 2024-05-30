@@ -10,5 +10,6 @@ scheduleRouter.get('/get', roleMiddleware(['USER', "ADMIN"]), controller.getShed
 scheduleRouter.get('/getExcel', roleMiddleware(['USER', "ADMIN"]), controller.getScheduleAsExcel);
 scheduleRouter.post('/edit', roleMiddleware(["ADMIN"]), controller.editSchedule);
 scheduleRouter.post('/delete', roleMiddleware(["ADMIN"]), controller.deleteSchedule);
+scheduleRouter.post('/autoGen', roleMiddleware(["ADMIN"]), controller.generateMonthlySchedule);
 
 export { scheduleRouter };

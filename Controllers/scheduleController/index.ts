@@ -6,6 +6,7 @@ import {
     Schedule,
     Teachers,
     Audithories,
+    Groups,
     Types
 } from "../../models/index";
 import mongoose, { isValidObjectId } from "mongoose";
@@ -17,6 +18,7 @@ interface ScheduleItem {
     audithoria: string;
     number: number;
 }
+
 
 class scheduleController {
 
@@ -181,20 +183,21 @@ class scheduleController {
             }
 
             for (const discipline of disciplines) {
-                const burdenItem = discipline.groups.find(e =>
-                    e.burden?.month?.toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' }) === new Date(date).toLocaleDateString('ru-Ru', { month: 'numeric', year: 'numeric' })
-                );
+                discipline.groups.forEach(group => {
+                    const burdenItem = group.burden.find(burden => {
+                        const burdenDate = new Date(burden.month);
+                        return burdenDate.getMonth() === date.getMonth() && burdenDate.getFullYear() === date.getFullYear();
+                    });
 
-                if (!burdenItem || !burdenItem.burden || burdenItem.burden.hH === undefined || burdenItem.burden.hH === null) {
-                    discipline.groups.forEach(_group => {
-                        _group.burden = {
+                    if (!burdenItem) {
+                        group.burden.push({
                             month: date,
                             hH: 2
-                        }
-                    });
-                } else {
-                    burdenItem.burden.hH += 2;
-                }
+                        });
+                    } else {
+                        burdenItem.hH += 2;
+                    }
+                });
 
                 await discipline.save();
             }
@@ -650,6 +653,107 @@ class scheduleController {
             res.status(500).json({ message: 'Ошибка сервера' });
         }
     }
+
+    /**
+    * Автоматическая генерация расписания на месяц
+    * @swagger
+    * /schedule/autoGen:
+    *   post:
+    *     summary: Генерировать расписание на месяц
+    *     description: Автоматически создает расписание на указанный месяц.
+    *     tags: [schedule]
+    *     security:
+    *       - bearerAuth: []
+    *     requestBody:
+    *       required: true
+    *       content:
+    *         application/json:
+    *           schema:
+    *             type: object
+    *             properties:
+    *               year:
+    *                 type: integer
+    *                 description: Год для создания расписания.
+    *               month:
+    *                 type: integer
+    *                 description: Месяц для создания расписания (1-12).
+    *     responses:
+    *       '200':
+    *         description: Успешное создание расписания.
+    *         content:
+    *           application/json:
+    *             schema:
+    *               type: object
+    *               properties:
+    *                 message:
+    *                   type: string
+    *                   description: Сообщение о успешном создании расписания.
+    *       '400':
+    *         description: Ошибка в запросе.
+    *         content:
+    *           application/json:
+    *             schema:
+    *               type: object
+    *               properties:
+    *                 message:
+    *                   type: string
+    *                   description: Сообщение об ошибке в запросе.
+    *       '500':
+    *         description: Внутренняя ошибка сервера.
+    *         content:
+    *           application/json:
+    *             schema:
+    *               type: object
+    *               properties:
+    *                 message:
+    *                   type: string
+    *                   description: Сообщение об ошибке сервера.
+    */
+    async generateMonthlySchedule(req: Request, res: Response) {
+        try {
+            const { year, month } = req.body;
+            const groups = await Groups.find();
+
+            const availableTypes = ['Практическая работа', 'Лабораторная работа', 'Зачет', 'Экзамен'];
+
+            const daysInMonth = new Date(year, month, 0).getDate();
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const date = new Date(year, month - 1, day);
+
+                for (const group of groups) {
+                    let scheduleItems = [];
+
+
+                    const groupDisciplines = await Disciplines.find({ 'groups.item': group._id });
+
+                    let disciplineWithMinRatio;
+                    let minRatio = Infinity;
+                    groupDisciplines.forEach(discipline => {
+                        discipline.groups.forEach(groupInfo => {
+                            const aH = groupInfo.aH;
+                            
+                        });
+                    });
+                    console.log("Дисциплина с наименьшим отношением aH к hH:", disciplineWithMinRatio.name, day);
+
+                    // const newSchedule = new Schedule({
+                    //     date,
+                    //     group: group._id,
+                    //     items: {
+                    //         discipline: 
+                    //     },
+                    // });
+                }
+            }
+
+            res.status(200).json({ message: "Расписание успешно сгенерировано" });
+        } catch (error) {
+            console.error('Ошибка:', error);
+            res.status(500).json({ message: 'Ошибка сервера' });
+        }
+    }
+
 }
 
 export { scheduleController };

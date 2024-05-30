@@ -17,14 +17,14 @@ const DisciplineSchema = new Schema({
                 type: Number,
                 required: true,
             },
-            burden: {
+            burden: [{
                 month: {
                     type: Date,
                 },
                 hH: {
                     type: Number,
-                },
-            }
+                }
+            }]
         }
     ],
     teachers: [{
