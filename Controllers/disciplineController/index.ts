@@ -685,6 +685,94 @@ class disciplineController {
             res.status(500).json({ message: 'Ошибка сервера' });
         }
     }
+
+    /**
+ * @swagger
+ * /discipline/deleteTeacherFromDiscipline:
+ *   post:
+ *     summary: Удаление учителя из дисциплины
+ *     tags: [Disciplines]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               disciplineId:
+ *                 type: string
+ *                 description: Идентификатор дисциплины
+ *                 example: "60d21b4667d0d8992e610c85"
+ *               teacherId:
+ *                 type: string
+ *                 description: Идентификатор учителя
+ *                 example: "60d21b4867d0d8992e610c86"
+ *     responses:
+ *       200:
+ *         description: Успешное удаление учителя из дисциплины
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Сообщение об успешном удалении учителя из дисциплины
+ *                 discipline:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     teachers:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *       404:
+ *         description: Дисциплина или учитель не найдены
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *       500:
+ *         description: Внутренняя ошибка сервера
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ */
+    async deleteTeacherFromDiscipline(req: Request, res: Response) {
+        try {
+            const { disciplineId, teacherId } = req.body;
+
+            const discipline = await Disciplines.findById(disciplineId);
+            if (!discipline) {
+                return res.status(404).json({ error: "Дисциплина не найдена" });
+            }
+
+            const groupIndex = discipline.teachers.findIndex(g => g._id.toString() === teacherId);
+            if (groupIndex === -1) {
+                return res.status(404).json({ error: "Преподаватель не найден в дисциплине" });
+            }
+
+            discipline.teachers.splice(groupIndex, 1);
+            await discipline.save();
+
+            res.status(200).json({ message: "Преподаватель успешно удален из дисциплины", discipline });
+        } catch (error) {
+            console.error('Ошибка:', error);
+            res.status(500).json({ message: 'Ошибка сервера' });
+        }
+    }
 }
 
 export { disciplineController };
