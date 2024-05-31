@@ -588,6 +588,103 @@ class disciplineController {
             res.status(500).json({ message: 'Ошибка сервера' });
         }
     }
+
+    /**
+ * @swagger
+ * /discipline/addTeacherToDiscipline:
+ *   post:
+ *     summary: Добавление учителя к дисциплине
+ *     tags: [Disciplines]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               disciplineId:
+ *                 type: string
+ *                 description: Идентификатор дисциплины
+ *                 example: "60d21b4667d0d8992e610c85"
+ *               teacherId:
+ *                 type: string
+ *                 description: Идентификатор учителя
+ *                 example: "60d21b4867d0d8992e610c86"
+ *     responses:
+ *       200:
+ *         description: Успешное добавление учителя к дисциплине
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   description: Сообщение об успешном добавлении учителя к дисциплине
+ *                 discipline:
+ *                   type: object
+ *                   properties:
+ *                     _id:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     teachers:
+ *                       type: array
+ *                       items:
+ *                         type: string
+ *       400:
+ *         description: Учитель уже добавлен в дисциплину
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *       404:
+ *         description: Дисциплина или учитель не найдены
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 error:
+ *                   type: string
+ *       500:
+ *         description: Внутренняя ошибка сервера
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ */
+    async addTeacherToDiscipline(req: Request, res: Response) {
+        try {
+            const { disciplineId, teacherId } = req.body;
+
+            const discipline = await Disciplines.findById(disciplineId);
+            if (!discipline) {
+                return res.status(404).json({ error: "Дисциплина не найдена" });
+            }
+
+            const teacherExists = discipline.teachers.some(t => t.toString() === teacherId);
+            if (teacherExists) {
+                return res.status(400).json({ error: "Преподаватель уже добавлен в дисциплину" });
+            }
+
+            discipline.teachers.push(teacherId);
+            await discipline.save();
+
+            res.status(200).json({ message: "Преподаватель успешно добавлен в дисциплину", discipline });
+        } catch (error) {
+            console.error('Ошибка:', error);
+            res.status(500).json({ message: 'Ошибка сервера' });
+        }
+    }
 }
 
 export { disciplineController };

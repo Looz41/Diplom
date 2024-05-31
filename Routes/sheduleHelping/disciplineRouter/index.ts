@@ -11,5 +11,6 @@ disciplineRouter.post("/edit", roleMiddleware(["ADMIN"]), controller.editDiscipl
 disciplineRouter.post("/delete", roleMiddleware(["ADMIN"]), controller.deleteDiscipline);
 disciplineRouter.post("/addGroupToDiscipline", roleMiddleware(["ADMIN"]), controller.addGroupToDiscipline);
 disciplineRouter.post("/deleteGroupFromDiscipline", roleMiddleware(["ADMIN"]), controller.deleteGroupFromDiscipline);
+disciplineRouter.post("/addTeacherToDiscipline", roleMiddleware(["ADMIN"]), controller.addTeacherToDiscipline);
 
 export { disciplineRouter };
