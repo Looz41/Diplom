@@ -281,7 +281,7 @@ class disciplineController {
             }
 
             const disciplines = await Disciplines.find(query)
-                .select('_id name groups pc')
+                .select('_id name groups pc teachers')
                 .populate('groups.item', 'name')
                 .exec();
 
@@ -289,6 +289,7 @@ class disciplineController {
                 id: discipline._id,
                 name: discipline.name,
                 groups: discipline.groups,
+                teachers: discipline.teachers,
                 pc: discipline.pc
             }));
 
@@ -566,20 +567,20 @@ class disciplineController {
     async deleteGroupFromDiscipline(req: Request, res: Response) {
         try {
             const { disciplineId, groupId } = req.body;
-    
+
             const discipline = await Disciplines.findById(disciplineId);
             if (!discipline) {
                 return res.status(404).json({ error: "Дисциплина не найдена" });
             }
-    
+
             const groupIndex = discipline.groups.findIndex(g => g._id.toString() === groupId);
             if (groupIndex === -1) {
                 return res.status(404).json({ error: "Группа не найдена в дисциплине" });
             }
-    
+
             discipline.groups.splice(groupIndex, 1);
             await discipline.save();
-    
+
             res.status(200).json({ message: "Группа успешно удалена из дисциплины", discipline });
         } catch (error) {
             console.error('Ошибка:', error);
