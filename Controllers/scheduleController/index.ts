@@ -393,19 +393,26 @@ class scheduleController {
     async getShedule(req: Request, res: Response) {
         try {
             let query: any = {};
-
+    
             if (typeof req.query.date === 'string') {
-                query.date = req.query.date;
+                const startOfDay = new Date(req.query.date);
+                startOfDay.setUTCHours(0, 0, 0, 0);
+                const endOfDay = new Date(req.query.date);
+                endOfDay.setUTCHours(23, 59, 59, 999);
+                query.date = { $gte: startOfDay, $lte: endOfDay };
+                console.log('Диапазон дат для запроса:', query.date);
             }
-
+    
+            // Проверка и добавление фильтра по преподавателю
             if (typeof req.query.teacher === 'string') {
                 query["items.teacher"] = req.query.teacher;
             }
-
+    
+            // Проверка и добавление фильтра по группе
             if (typeof req.query.group === 'string') {
                 query["group"] = req.query.group;
             }
-
+    
             const schedule = await Schedule.find(query)
                 .populate('group', 'name')
                 .populate('items.discipline', 'name')
@@ -413,11 +420,11 @@ class scheduleController {
                 .populate('items.audithoria', 'name')
                 .populate('items.type', 'name')
                 .exec();
-
+    
             if (!schedule || schedule.length === 0) {
                 return res.status(404).json({ message: "Расписание не найдено" });
             }
-
+    
             res.status(200).json({ schedule });
         } catch (error) {
             console.error('Ошибка:', error);
@@ -713,40 +720,73 @@ class scheduleController {
         try {
             const { year, month } = req.body;
             const groups = await Groups.find();
-
-            const availableTypes = ['Практическая работа', 'Лабораторная работа', 'Зачет', 'Экзамен'];
-
+        
+            const availableTypes = [
+                'Практическая работа', 
+                'Лабораторная работа', 
+                'Зачет', 
+                'Экзамен'
+            ];
+    
             const daysInMonth = new Date(year, month, 0).getDate();
-
+        
             for (let day = 1; day <= daysInMonth; day++) {
                 const date = new Date(year, month - 1, day);
-
+        
                 for (const group of groups) {
                     let scheduleItems = [];
-
-
+        
                     const groupDisciplines = await Disciplines.find({ 'groups.item': group._id });
-
-                    let disciplineWithMinRatio;
-                    let minRatio = Infinity;
-                    groupDisciplines.forEach(discipline => {
-                        discipline.groups.forEach(groupInfo => {
-                            const aH = groupInfo.aH;
-                            
+        
+                    for (let i = 1; i <= 4; i++) {
+                        let disciplineWithMinRatio;
+                        let minRatio = Infinity;
+        
+                        groupDisciplines.forEach(discipline => {
+                            discipline.groups.forEach(groupInfo => {
+                                const aH = groupInfo.aH;
+        
+                                const filteredBurden = groupInfo.burden.filter(e => {
+                                    return e.month && e.month.toLocaleDateString('ru', { year: 'numeric', month: '2-digit' }) === date.toLocaleDateString('ru', { year: 'numeric', month: '2-digit' });
+                                });
+        
+                                const hH = filteredBurden.length > 0 && filteredBurden[0].hH ? filteredBurden[0].hH : 0;
+                                const ratio = hH !== 0 ? aH / hH : 0;
+        
+                                if (ratio < minRatio) {
+                                    minRatio = ratio;
+                                    disciplineWithMinRatio = discipline;
+                                }
+                            });
                         });
-                    });
-                    console.log("Дисциплина с наименьшим отношением aH к hH:", disciplineWithMinRatio.name, day);
-
-                    // const newSchedule = new Schedule({
-                    //     date,
-                    //     group: group._id,
-                    //     items: {
-                    //         discipline: 
-                    //     },
-                    // });
+        
+                        if (disciplineWithMinRatio) {
+                            console.log(`Дисциплина с наименьшим отношением aH к hH: ${disciplineWithMinRatio.name}, день: ${day}, номер: ${i}`);
+        
+                            const type = '664a7b904a39cebfdb541a74';
+                            const audithoria = '6658dad05f44ccb56655ba16';
+        
+                            scheduleItems.push({
+                                discipline: disciplineWithMinRatio._id,
+                                teacher: disciplineWithMinRatio.teachers[0]._id,
+                                type: type,
+                                audithoria: audithoria,
+                                number: i
+                            });
+                        }
+                    }
+        
+                    if (scheduleItems.length > 0) {
+                        const newSchedule = new Schedule({
+                            date,
+                            group: group._id,
+                            items: scheduleItems
+                        });
+                        await newSchedule.save();
+                    }
                 }
             }
-
+        
             res.status(200).json({ message: "Расписание успешно сгенерировано" });
         } catch (error) {
             console.error('Ошибка:', error);
