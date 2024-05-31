@@ -393,7 +393,7 @@ class scheduleController {
     async getShedule(req: Request, res: Response) {
         try {
             let query: any = {};
-    
+
             if (typeof req.query.date === 'string') {
                 const startOfDay = new Date(req.query.date);
                 startOfDay.setUTCHours(0, 0, 0, 0);
@@ -402,17 +402,17 @@ class scheduleController {
                 query.date = { $gte: startOfDay, $lte: endOfDay };
                 console.log('Диапазон дат для запроса:', query.date);
             }
-    
+
             // Проверка и добавление фильтра по преподавателю
             if (typeof req.query.teacher === 'string') {
                 query["items.teacher"] = req.query.teacher;
             }
-    
+
             // Проверка и добавление фильтра по группе
             if (typeof req.query.group === 'string') {
                 query["group"] = req.query.group;
             }
-    
+
             const schedule = await Schedule.find(query)
                 .populate('group', 'name')
                 .populate('items.discipline', 'name')
@@ -420,11 +420,11 @@ class scheduleController {
                 .populate('items.audithoria', 'name')
                 .populate('items.type', 'name')
                 .exec();
-    
+
             if (!schedule || schedule.length === 0) {
                 return res.status(404).json({ message: "Расписание не найдено" });
             }
-    
+
             res.status(200).json({ schedule });
         } catch (error) {
             console.error('Ошибка:', error);
@@ -720,73 +720,139 @@ class scheduleController {
         try {
             const { year, month } = req.body;
             const groups = await Groups.find();
-        
+
             const availableTypes = [
-                'Практическая работа', 
-                'Лабораторная работа', 
-                'Зачет', 
+                'Практическая работа',
+                'Лабораторная работа',
+                'Зачет',
                 'Экзамен'
             ];
-    
+
             const daysInMonth = new Date(year, month, 0).getDate();
-        
+
             for (let day = 1; day <= daysInMonth; day++) {
                 const date = new Date(year, month - 1, day);
-        
+
                 for (const group of groups) {
-                    let scheduleItems = [];
-        
+                    const scheduleItems = [];
+
                     const groupDisciplines = await Disciplines.find({ 'groups.item': group._id });
-        
+
                     for (let i = 1; i <= 4; i++) {
-                        let disciplineWithMinRatio;
-                        let minRatio = Infinity;
-        
-                        groupDisciplines.forEach(discipline => {
-                            discipline.groups.forEach(groupInfo => {
-                                const aH = groupInfo.aH;
-        
-                                const filteredBurden = groupInfo.burden.filter(e => {
-                                    return e.month && e.month.toLocaleDateString('ru', { year: 'numeric', month: '2-digit' }) === date.toLocaleDateString('ru', { year: 'numeric', month: '2-digit' });
+                        let minBurden = Infinity;
+                        let selectedDiscipline;
+                        let selectedTeacher;
+                        let selectedAudithoria;
+                        let isTeacherAvailable = false;
+                        let isAudithoriaAvailable = false; // Флаг для проверки доступности аудитории
+
+                        // Поиск доступного учителя и дисциплины
+                        for (const discipline of groupDisciplines) {
+                            for (const teacherId of discipline.teachers) {
+                                const teacher = await Teachers.findById(teacherId);
+                                // Проверка занятости учителя на данную дату и номер пары
+                                const isTeacherOccupied = await Schedule.exists({
+                                    date,
+                                    'items.teacher': teacherId,
+                                    'items.number': i
                                 });
-        
-                                const hH = filteredBurden.length > 0 && filteredBurden[0].hH ? filteredBurden[0].hH : 0;
-                                const ratio = hH !== 0 ? aH / hH : 0;
-        
-                                if (ratio < minRatio) {
-                                    minRatio = ratio;
-                                    disciplineWithMinRatio = discipline;
+
+                                if (!isTeacherOccupied) {
+                                    isTeacherAvailable = true;
+
+                                    // Поиск доступной аудитории
+                                    const audithories = await Audithories.find();
+                                    for (const audithoria of audithories) {
+                                        const isAudithoriaOccupied = await Schedule.exists({
+                                            date,
+                                            'items.audithoria': audithoria._id,
+                                            'items.number': i
+                                        });
+
+                                        if (!isAudithoriaOccupied) {
+                                            isAudithoriaAvailable = true;
+                                            selectedAudithoria = audithoria;
+                                            break;
+                                        }
+                                    }
+
+                                    // Вычисление нагрузки и выбор учителя
+                                    const filteredTeacherBurden = teacher.burden.filter(e => e.mounth && e.mounth.getMonth() === month - 1 && e.mounth.getFullYear() === year);
+                                    const filteredDisciplineBurden = discipline.groups.find(group => group.item.toString() === group._id.toString())?.burden?.filter(e => e.month && e.month.getMonth() === month - 1 && e.month.getFullYear() === year);
+
+                                    const teacherHH = filteredTeacherBurden.length > 0 ? filteredTeacherBurden[0].hH : 0;
+                                    const disciplineHH = filteredDisciplineBurden && filteredDisciplineBurden.length > 0 ? filteredDisciplineBurden[0].hH : 0;
+
+                                    const teacherBurden = teacherHH !== 0 ? teacher.aH / teacherHH : 0;
+                                    const disciplineBurden = disciplineHH !== 0 ? discipline.groups.filter(e => e.item._id === group._id)[0].aH / disciplineHH : 0;
+
+                                    if (isAudithoriaAvailable && teacherBurden < minBurden && disciplineBurden < minBurden) {
+                                        minBurden = Math.min(teacherBurden, disciplineBurden);
+                                        selectedTeacher = teacher;
+                                        selectedDiscipline = discipline;
+                                    }
                                 }
-                            });
-                        });
-        
-                        if (disciplineWithMinRatio) {
-                            console.log(`Дисциплина с наименьшим отношением aH к hH: ${disciplineWithMinRatio.name}, день: ${day}, номер: ${i}`);
-        
+                            }
+                        }
+
+                        if (selectedDiscipline && selectedTeacher && isTeacherAvailable && isAudithoriaAvailable) {
                             const type = '664a7b904a39cebfdb541a74';
-                            const audithoria = '6658dad05f44ccb56655ba16';
-        
+                        
                             scheduleItems.push({
-                                discipline: disciplineWithMinRatio._id,
-                                teacher: disciplineWithMinRatio.teachers[0]._id,
+                                discipline: selectedDiscipline._id,
+                                teacher: selectedTeacher._id,
                                 type: type,
-                                audithoria: audithoria,
+                                audithoria: selectedAudithoria._id,
                                 number: i
                             });
+                            
+                            // Добавление нагрузки для учителя
+                            if (selectedTeacher.burden) {
+                                const currentMonthTeacherBurdenIndex = selectedTeacher.burden.findIndex(b => b.mounth.getMonth() === month - 1 && b.mounth.getFullYear() === year);
+                            
+                                if (currentMonthTeacherBurdenIndex !== -1) {
+                                    selectedTeacher.burden[currentMonthTeacherBurdenIndex].hH += 2;
+                                } else {
+                                    selectedTeacher.burden.push({ mounth: date, hH: 2 });
+                                }
+                            } else {
+                                selectedTeacher.burden = [{ mounth: date, hH: 2 }];
+                            }
+                        
+                            // Добавление нагрузки для группы в дисциплине
+                            for (const group of selectedDiscipline.groups) {
+                                if (group.burden) {
+                                    const currentMonthGroupBurdenIndex = group.burden.findIndex(b => b.month.getMonth() === month - 1 && b.month.getFullYear() === year);
+                                
+                                    if (currentMonthGroupBurdenIndex !== -1) {
+                                        group.burden[currentMonthGroupBurdenIndex].hH += 2;
+                                    } else {
+                                        group.burden.push({ month: date, hH: 2 });
+                                    }
+                                } else {
+                                    group.burden = [{ month: date, hH: 2 }];
+                                }
+                            }
+                        
+                            // Сохранение изменений в учителе и дисциплине
+                            await selectedTeacher.save();
+                            await selectedDiscipline.save();
                         }
+                        
                     }
-        
+
                     if (scheduleItems.length > 0) {
                         const newSchedule = new Schedule({
                             date,
                             group: group._id,
                             items: scheduleItems
                         });
+                        console.log(newSchedule, 'Day:', day)
                         await newSchedule.save();
                     }
                 }
             }
-        
+
             res.status(200).json({ message: "Расписание успешно сгенерировано" });
         } catch (error) {
             console.error('Ошибка:', error);
