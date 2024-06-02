@@ -116,7 +116,18 @@ class scheduleController {
 
             const avaliableTypes = ['Практическая работа', 'Лабораторная работа', 'Зачет', 'Экзамен']
 
+            const groupData = await Groups.findOne({ _id: group });
+            if (!groupData) {
+                return res.status(404).json({ message: 'Группа не найдена' });
+            }
+
             for (const item of items) {
+                const disciplineExistsInGroup = item.items.some(groupItem =>
+                    groupItem.discipline === groupData._id
+                );
+                if (!disciplineExistsInGroup) {
+                    return res.status(400).json({ message: `Дисциплина с ID ${item.discipline} не найдена в группе` });
+                }
                 const discipline = await Disciplines.findOne({ _id: item.discipline, teachers: item.teacher });
                 if (!discipline) {
                     return res.status(400).json({ message: `Учитель с ID ${item.teacher} не ведет дисциплину с ID ${item.discipline}` });
@@ -797,7 +808,7 @@ class scheduleController {
 
                         if (selectedDiscipline && selectedTeacher && isTeacherAvailable && isAudithoriaAvailable) {
                             const type = '664a7b904a39cebfdb541a74';
-                        
+
                             scheduleItems.push({
                                 discipline: selectedDiscipline._id,
                                 teacher: selectedTeacher._id,
@@ -805,11 +816,11 @@ class scheduleController {
                                 audithoria: selectedAudithoria._id,
                                 number: i
                             });
-                            
+
                             // Добавление нагрузки для учителя
                             if (selectedTeacher.burden) {
                                 const currentMonthTeacherBurdenIndex = selectedTeacher.burden.findIndex(b => b.mounth.getMonth() === month - 1 && b.mounth.getFullYear() === year);
-                            
+
                                 if (currentMonthTeacherBurdenIndex !== -1) {
                                     selectedTeacher.burden[currentMonthTeacherBurdenIndex].hH += 2;
                                 } else {
@@ -818,12 +829,12 @@ class scheduleController {
                             } else {
                                 selectedTeacher.burden = [{ mounth: date, hH: 2 }];
                             }
-                        
+
                             // Добавление нагрузки для группы в дисциплине
                             for (const group of selectedDiscipline.groups) {
                                 if (group.burden) {
                                     const currentMonthGroupBurdenIndex = group.burden.findIndex(b => b.month.getMonth() === month - 1 && b.month.getFullYear() === year);
-                                
+
                                     if (currentMonthGroupBurdenIndex !== -1) {
                                         group.burden[currentMonthGroupBurdenIndex].hH += 2;
                                     } else {
@@ -833,12 +844,12 @@ class scheduleController {
                                     group.burden = [{ month: date, hH: 2 }];
                                 }
                             }
-                        
+
                             // Сохранение изменений в учителе и дисциплине
                             await selectedTeacher.save();
                             await selectedDiscipline.save();
                         }
-                        
+
                     }
 
                     if (scheduleItems.length > 0) {
