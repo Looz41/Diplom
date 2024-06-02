@@ -809,7 +809,7 @@ class scheduleController {
                                     const filteredTeacherBurden = teacher.burden.filter(e => {
                                         e.mounth && e.mounth.getMonth() + 1 === month && e.mounth.getFullYear() === year
                                     });
-                                    console.log(filteredTeacherBurden.map(e => e.mounth.toLocaleDateString('ru-Ru', {month: '2-digit'})))
+                                    console.log(filteredTeacherBurden.map(e => e.mounth))
                                     const filteredDisciplineBurden = discipline.groups.find(group => group.item.toString() === group._id.toString())?.burden?.filter(e => e.month && e.month.getMonth() + 1 === month && e.month.getFullYear() === year);
 
                                     const teacherHH = filteredTeacherBurden.length > 0 ? filteredTeacherBurden[0].hH : 0;
