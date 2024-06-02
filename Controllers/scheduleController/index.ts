@@ -114,7 +114,11 @@ class scheduleController {
         try {
             const { date, group, items } = req.body;
 
-            const avaliableTypes = ['Практическая работа', 'Лабораторная работа', 'Зачет', 'Экзамен']
+            if (!Array.isArray(items)) {
+                return res.status(400).json({ message: 'Invalid items format' });
+            }
+
+            const avaliableTypes = ['Практическая работа', 'Лабораторная работа', 'Зачет', 'Экзамен'];
 
             const groupData = await Groups.findOne({ _id: group });
             if (!groupData) {
@@ -122,26 +126,40 @@ class scheduleController {
             }
 
             for (const item of items) {
-                const disciplineExistsInGroup = item.items.some(groupItem =>
-                    groupItem.discipline === groupData._id
+                if (!item.discipline || !item.teacher || !item.audithoria || !item.type || !item.number) {
+                    return res.status(400).json({ message: 'Invalid item structure' });
+                }
+
+                const discipline = await Disciplines.findOne({ _id: item.discipline }).populate('groups.item');
+                if (!discipline) {
+                    return res.status(404).json({ message: `Дисциплина с ID ${item.discipline} не найдена` });
+                }
+
+                const disciplineExistsInGroup = discipline.groups.some(groupItem =>
+                    groupItem.item.equals(group)
                 );
                 if (!disciplineExistsInGroup) {
                     return res.status(400).json({ message: `Дисциплина с ID ${item.discipline} не найдена в группе` });
                 }
-                const discipline = await Disciplines.findOne({ _id: item.discipline, teachers: item.teacher });
-                if (!discipline) {
+
+                const teacherValid = discipline.teachers.some(teacherId => teacherId.equals(item.teacher));
+                if (!teacherValid) {
                     return res.status(400).json({ message: `Учитель с ID ${item.teacher} не ведет дисциплину с ID ${item.discipline}` });
                 }
+
                 const audithoria = await Audithories.findOne({ _id: item.audithoria });
                 if (!audithoria) {
-                    return res.status(404).json({ message: 'Аудитория не найдена' })
+                    return res.status(404).json({ message: 'Аудитория не найдена' });
                 }
-                const type = await Types.findOne({ _id: item.type })
+
+                const type = await Types.findOne({ _id: item.type });
                 if (!type) {
-                    return res.status(404).json({ message: 'Тип не найден' })
+                    return res.status(404).json({ message: 'Тип не найден' });
                 }
+
+                // Validate if PC is required
                 if (avaliableTypes.includes(type.name) && !(discipline.pc && audithoria.pc)) {
-                    return res.status(400).json({ message: `Дисциплина ${discipline.name} на ${type.name} требует компьютерный класс` })
+                    return res.status(400).json({ message: `Дисциплина ${discipline.name} на ${type.name} требует компьютерный класс` });
                 }
             }
 
