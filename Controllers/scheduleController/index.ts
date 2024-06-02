@@ -807,9 +807,9 @@ class scheduleController {
 
                                     // Вычисление нагрузки и выбор учителя
                                     const filteredTeacherBurden = teacher.burden.filter(e => {
-                                        e.mounth && e.mounth.getMonth() + 1 === month && e.mounth.getFullYear() === year
+                                        e.mounth && e.mounth.toLocaleDateString('ru-Ru', { month: '2-digit' }) === month && e.mounth.toLocaleDateString('ru-Ru', { year: 'numeric' }) === year
                                     });
-                                    console.log(filteredTeacherBurden)
+                                    console.log(`Преподы с загрузкой на ${month}`, filteredTeacherBurden)
                                     const filteredDisciplineBurden = discipline.groups.find(group => group.item.toString() === group._id.toString())?.burden?.filter(e => e.month && e.month.getMonth() + 1 === month && e.month.getFullYear() === year);
 
                                     const teacherHH = filteredTeacherBurden.length > 0 ? filteredTeacherBurden[0].hH : 0;
