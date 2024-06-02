@@ -139,7 +139,7 @@ class scheduleController {
                     groupItem.item.equals(group)
                 );
                 if (!disciplineExistsInGroup) {
-                    return res.status(400).json({ message: `Дисциплина с ID ${item.discipline} не найдена в группе` });
+                    return res.status(400).json({ message: `Дисциплина с ID ${item.discipline} не прогодится в группе ${group}` });
                 }
 
                 const teacherValid = discipline.teachers.some(teacherId => teacherId.equals(item.teacher));
@@ -806,7 +806,10 @@ class scheduleController {
                                     }
 
                                     // Вычисление нагрузки и выбор учителя
-                                    const filteredTeacherBurden = teacher.burden.filter(e => e.mounth && e.mounth.getMonth() === month - 1 && e.mounth.getFullYear() === year);
+                                    const filteredTeacherBurden = teacher.burden.filter(e => {
+                                        console.log(e.mounth.getMonth(), '<<<<<<<>>>>>>', month)
+                                        e.mounth && e.mounth.getMonth() + 1 === month && e.mounth.getFullYear() === year
+                                    });
                                     const filteredDisciplineBurden = discipline.groups.find(group => group.item.toString() === group._id.toString())?.burden?.filter(e => e.month && e.month.getMonth() === month - 1 && e.month.getFullYear() === year);
 
                                     const teacherHH = filteredTeacherBurden.length > 0 ? filteredTeacherBurden[0].hH : 0;
