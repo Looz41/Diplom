@@ -771,6 +771,7 @@ class scheduleController {
 
                     const groupDisciplines = await Disciplines.find({ 'groups.item': group._id }).populate('teachers');
 
+
                     if (groupDisciplines.length) {
                         for (let i = 1; i <= 4; i++) {
                             let selectedDiscipline;
@@ -779,7 +780,17 @@ class scheduleController {
                             let isTeacherAvailable = false;
                             let isAudithoriaAvailable = false;
 
-                            const filteredDisciplines = groupDisciplines.sort((disciplineA, disciplineB) => {
+                            const scheduledItems = await Schedule.find({ date: date, 'items.number': i }).populate('items.discipline');
+
+                            const scheduledDisciplineIds = scheduledItems.flatMap(schedule =>
+                                schedule.items.filter(item => item.number === i).map(item => item.discipline._id.toString())
+                            );
+
+                            const availableDisciplines = groupDisciplines.filter(discipline =>
+                                !scheduledDisciplineIds.includes(discipline._id.toString())
+                            );
+
+                            const filteredDisciplines = availableDisciplines.sort((disciplineA, disciplineB) => {
                                 const aH_A = disciplineA.groups.find(g => g.item.toString() === group._id.toString()).aH;
                                 const relevantBurdenA = disciplineA.groups.find(g => g.item.toString() === group._id.toString()).burden.find(burdenItem => {
                                     return new Date(burdenItem.month).getMonth() === month - 1 && new Date(burdenItem.month).getFullYear() === year;
