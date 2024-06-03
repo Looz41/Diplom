@@ -19,6 +19,16 @@ interface ScheduleItem {
     number: number;
 }
 
+interface ITeacher {
+    surname: string,
+    name: string,
+    patronymic: string,
+    aH: number,
+    burden: {
+        hH: number,
+        mounth: string
+    }[]
+}
 
 class scheduleController {
 
@@ -757,134 +767,148 @@ class scheduleController {
                 'Экзамен'
             ];
 
+            // Calculate the number of days in the specified month
             const daysInMonth = new Date(year, month, 0).getDate();
 
             for (let day = 1; day <= daysInMonth; day++) {
-                const date = new Date(year, month - 1, day);
+                const date = new Date(year, month - 1, day); // month is zero-based in JS Date
 
                 for (const group of groups) {
                     const scheduleItems = [];
 
-                    const groupDisciplines = await Disciplines.find({ 'groups.item': group._id });
+                    const groupDisciplines = await Disciplines.find({ 'groups.item': group._id }).populate('teachers');
 
-                    for (let i = 1; i <= 4; i++) {
-                        let minBurden = Infinity;
-                        let selectedDiscipline;
-                        let selectedTeacher;
-                        let selectedAudithoria;
-                        let isTeacherAvailable = false;
-                        let isAudithoriaAvailable = false; // Флаг для проверки доступности аудитории
+                    console.log('Группа: ', group.name, 'Дисциплины группы: ', groupDisciplines)
 
-                        // Поиск доступного учителя и дисциплины
-                        for (const discipline of groupDisciplines) {
-                            for (const teacherId of discipline.teachers) {
-                                const teacher = await Teachers.findById(teacherId);
-                                // Проверка занятости учителя на данную дату и номер пары
-                                const isTeacherOccupied = await Schedule.exists({
-                                    date,
-                                    'items.teacher': teacherId,
-                                    'items.number': i
+                    if (groupDisciplines.length) {
+                        for (let i = 1; i <= 4; i++) {
+                            let selectedDiscipline;
+                            let selectedTeacher;
+                            let selectedAudithoria;
+                            let isTeacherAvailable = false;
+                            let isAudithoriaAvailable = false;
+
+                            const filteredDisciplines = groupDisciplines.sort((disciplineA, disciplineB) => {
+                                const aH_A = disciplineA.groups.find(g => g.item.toString() === group._id.toString()).aH;
+                                const relevantBurdenA = disciplineA.groups.find(g => g.item.toString() === group._id.toString()).burden.find(burdenItem => {
+                                    return new Date(burdenItem.month).getMonth() === month - 1 && new Date(burdenItem.month).getFullYear() === year;
+                                });
+                                const hH_A = relevantBurdenA ? relevantBurdenA.hH : .1;
+
+                                const aH_B = disciplineB.groups.find(g => g.item.toString() === group._id.toString()).aH;
+                                const relevantBurdenB = disciplineB.groups.find(g => g.item.toString() === group._id.toString()).burden.find(burdenItem => {
+                                    return new Date(burdenItem.month).getMonth() === month - 1 && new Date(burdenItem.month).getFullYear() === year;
+                                });
+                                const hH_B = relevantBurdenB ? relevantBurdenB.hH : .1;
+
+                                const actual_hH_A = hH_A === 0 ? .1 : hH_A;
+                                const actual_hH_B = hH_B === 0 ? .1 : hH_B;
+
+                                return (aH_B / actual_hH_B) - (aH_A / actual_hH_A);
+                            });
+
+                            for (const discipline of filteredDisciplines) {
+                                const filteredTeachers = (discipline.teachers as any).sort((teacherA, teacherB) => {
+                                    const aH_A = teacherA.aH;
+                                    const relevantBurdenA = teacherA.burden.find(burdenItem => {
+                                        return new Date(burdenItem.mounth).getMonth() === month - 1 && new Date(burdenItem.mounth).getFullYear() === year;
+                                    });
+                                    const hH_A = relevantBurdenA ? relevantBurdenA.hH : .1;
+
+                                    const aH_B = teacherB.aH;
+                                    const relevantBurdenB = teacherB.burden.find(burdenItem => {
+                                        return new Date(burdenItem.mounth).getMonth() === month - 1 && new Date(burdenItem.mounth).getFullYear() === year;
+                                    });
+                                    const hH_B = relevantBurdenB ? relevantBurdenB.hH : .1;
+
+                                    const actual_hH_A = hH_A === 0 ? .1 : hH_A;
+                                    const actual_hH_B = hH_B === 0 ? .1 : hH_B;
+
+                                    return (aH_B / actual_hH_B) - (aH_A / actual_hH_A);
                                 });
 
-                                if (!isTeacherOccupied) {
-                                    isTeacherAvailable = true;
-
-                                    // Поиск доступной аудитории
-                                    const audithories = await Audithories.find();
-                                    for (const audithoria of audithories) {
-                                        const isAudithoriaOccupied = await Schedule.exists({
-                                            date,
-                                            'items.audithoria': audithoria._id,
-                                            'items.number': i
-                                        });
-
-                                        if (!isAudithoriaOccupied) {
-                                            isAudithoriaAvailable = true;
-                                            selectedAudithoria = audithoria;
-                                            break;
-                                        }
-                                    }
-
-                                    // Вычисление нагрузки и выбор учителя
-                                    const filteredTeacherBurden = teacher.burden.filter(e => {
-                                        e.mounth && e.mounth.toLocaleDateString('ru-Ru', { month: '2-digit' }) === month && e.mounth.toLocaleDateString('ru-Ru', { year: 'numeric' }) === year
+                                for (const teacher of filteredTeachers) {
+                                    const isTeacherOccupied = await Schedule.exists({
+                                        date,
+                                        'items.teacher': teacher._id,
+                                        'items.number': i
                                     });
-                                    console.log(`Преподы с загрузкой на ${month}`, filteredTeacherBurden)
-                                    const filteredDisciplineBurden = discipline.groups.find(group => group.item.toString() === group._id.toString())?.burden?.filter(e => e.month && e.month.getMonth() + 1 === month && e.month.getFullYear() === year);
 
-                                    const teacherHH = filteredTeacherBurden.length > 0 ? filteredTeacherBurden[0].hH : 0;
-                                    const disciplineHH = filteredDisciplineBurden && filteredDisciplineBurden.length > 0 ? filteredDisciplineBurden[0].hH : 0;
+                                    const maxAhTeacher = teacher.aH <= teacher.burden.find(burdenItem => new Date(burdenItem.mounth).getMonth() === month - 1 && new Date(burdenItem.mounth).getFullYear() === year)?.hH
 
-                                    const teacherBurden = teacherHH !== 0 ? teacher.aH / teacherHH : 0;
-                                    const disciplineBurden = disciplineHH !== 0 ? discipline.groups.filter(e => e.item._id === group._id)[0].aH / disciplineHH : 0;
+                                    console.log('МБ Препод: ', teacher.surname, 'Пара: ', i, 'Группа', group.name)
+                                    if (!isTeacherOccupied && !maxAhTeacher) {
+                                        isTeacherAvailable = true;
+                                        selectedTeacher = await Teachers.findById(teacher._id);
+                                        selectedDiscipline = await Disciplines.findById(discipline._id);
 
-                                    if (isAudithoriaAvailable && teacherBurden < minBurden && disciplineBurden < minBurden) {
-                                        minBurden = Math.min(teacherBurden, disciplineBurden);
-                                        selectedTeacher = teacher;
-                                        selectedDiscipline = discipline;
+                                        const audithories = await Audithories.find();
+                                        for (const audithoria of audithories) {
+                                            const isAudithoriaOccupied = await Schedule.exists({
+                                                date,
+                                                'items.audithoria': audithoria._id,
+                                                'items.number': i
+                                            });
+
+                                            if (!isAudithoriaOccupied) {
+                                                console.log('Кабинет: ', audithoria.name, 'Пара: ', i, 'Группа', group.name)
+                                                isAudithoriaAvailable = true;
+                                                selectedAudithoria = audithoria;
+                                                break
+                                            }
+                                        }
+                                        console.log('Препод: ', teacher.surname, 'Пара: ', i, 'Группа', group.name)
+                                        if (isAudithoriaAvailable && isTeacherAvailable) break
                                     }
                                 }
                             }
-                        }
 
-                        if (selectedDiscipline && selectedTeacher && isTeacherAvailable && isAudithoriaAvailable) {
-                            const type = '664a7b904a39cebfdb541a74';
+                            if (selectedDiscipline && selectedTeacher && isTeacherAvailable && isAudithoriaAvailable) {
+                                const type = '664a7b904a39cebfdb541a74';
 
-                            scheduleItems.push({
-                                discipline: selectedDiscipline._id,
-                                teacher: selectedTeacher._id,
-                                type: type,
-                                audithoria: selectedAudithoria._id,
-                                number: i
-                            });
+                                scheduleItems.push({
+                                    discipline: selectedDiscipline._id,
+                                    teacher: selectedTeacher._id,
+                                    type: type,
+                                    audithoria: selectedAudithoria._id,
+                                    number: i
+                                });
 
-                            // Добавление нагрузки для учителя
-                            if (selectedTeacher.burden) {
-                                const currentMonthTeacherBurdenIndex = selectedTeacher.burden.findIndex(b => b.mounth.getMonth() === month - 1 && b.mounth.getFullYear() === year);
-
-                                if (currentMonthTeacherBurdenIndex !== -1) {
-                                    selectedTeacher.burden[currentMonthTeacherBurdenIndex].hH += 2;
+                                // Update or create burden for selectedTeacher
+                                const currentMonthTeacherBurden = selectedTeacher.burden.find(b => b.mounth.getMonth() === month - 1 && b.mounth.getFullYear() === year);
+                                if (currentMonthTeacherBurden) {
+                                    currentMonthTeacherBurden.hH += 2;
                                 } else {
                                     selectedTeacher.burden.push({ mounth: date, hH: 2 });
                                 }
-                            } else {
-                                selectedTeacher.burden = [{ mounth: date, hH: 2 }];
-                            }
 
-                            // Добавление нагрузки для группы в дисциплине
-                            for (const group of selectedDiscipline.groups) {
-                                if (group.burden) {
-                                    const currentMonthGroupBurdenIndex = group.burden.findIndex(b => b.month.getMonth() === month - 1 && b.month.getFullYear() === year);
-
-                                    if (currentMonthGroupBurdenIndex !== -1) {
-                                        group.burden[currentMonthGroupBurdenIndex].hH += 2;
+                                // Update or create burden for each group in selectedDiscipline
+                                for (const group of selectedDiscipline.groups) {
+                                    const currentMonthGroupBurden = group.burden.find(b => b.month.getMonth() === month - 1 && b.month.getFullYear() === year);
+                                    if (currentMonthGroupBurden) {
+                                        currentMonthGroupBurden.hH += 2;
                                     } else {
                                         group.burden.push({ month: date, hH: 2 });
                                     }
-                                } else {
-                                    group.burden = [{ month: date, hH: 2 }];
                                 }
-                            }
 
-                            // Сохранение изменений в учителе и дисциплине
-                            await selectedTeacher.save();
-                            await selectedDiscipline.save();
+                                await selectedTeacher.save();
+                                await selectedDiscipline.save();
+                            }
                         }
 
-                    }
-
-                    if (scheduleItems.length > 0) {
-                        const newSchedule = new Schedule({
-                            date,
-                            group: group._id,
-                            items: scheduleItems
-                        });
-                        console.log(newSchedule, 'Day:', day)
-                        await newSchedule.save();
+                        if (scheduleItems.length > 0) {
+                            const newSchedule = new Schedule({
+                                date,
+                                group: group._id,
+                                items: scheduleItems
+                            });
+                            console.log(newSchedule, 'Day:', day);
+                            await newSchedule.save();
+                        }
                     }
                 }
             }
-
             res.status(200).json({ message: "Расписание успешно сгенерировано" });
         } catch (error) {
             console.error('Ошибка:', error);
