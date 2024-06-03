@@ -774,7 +774,6 @@ class scheduleController {
                 const date = new Date(year, month - 1, day); // month is zero-based in JS Date
 
                 for (let i = 1; i <= 4; i++) {
-
                     for (const group of groups) {
                         const scheduleItems = [];
 
@@ -862,6 +861,8 @@ class scheduleController {
                                         if (isAudithoriaAvailable && isTeacherAvailable) break
                                     }
                                 }
+
+                                if (isTeacherAvailable && isAudithoriaAvailable) break; // Move break here to ensure we move to the next discipline only if necessary
                             }
 
                             if (selectedDiscipline && selectedTeacher && isTeacherAvailable && isAudithoriaAvailable) {
