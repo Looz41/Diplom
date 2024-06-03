@@ -771,6 +771,7 @@ class scheduleController {
 
                     const groupDisciplines = await Disciplines.find({ 'groups.item': group._id }).populate('teachers');
 
+                    console.log('Все дисциплины для группы ', group.name, ' - ', groupDisciplines)
 
                     if (groupDisciplines.length) {
                         for (let i = 1; i <= 4; i++) {
@@ -789,6 +790,8 @@ class scheduleController {
                             const availableDisciplines = groupDisciplines.filter(discipline =>
                                 !scheduledDisciplineIds.includes(discipline._id.toString())
                             );
+
+                            console.log('Доступные дисциплины для группы ', group.name, ' - ', availableDisciplines)
 
                             const filteredDisciplines = availableDisciplines.sort((disciplineA, disciplineB) => {
                                 const aH_A = disciplineA.groups.find(g => g.item.toString() === group._id.toString()).aH;
@@ -905,6 +908,8 @@ class scheduleController {
                                 group: group._id,
                                 items: scheduleItems
                             });
+                            console.log(newSchedule, 'День: ', date)
+                            res.json({message: `Успешно создано расписание на ${date}`})
                             await newSchedule.save();
                         }
                     }
