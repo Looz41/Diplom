@@ -909,7 +909,6 @@ class scheduleController {
                                 items: scheduleItems
                             });
                             console.log(newSchedule, 'День: ', date)
-                            res.json({message: `Успешно создано расписание на ${date}`})
                             await newSchedule.save();
                         }
                     }
