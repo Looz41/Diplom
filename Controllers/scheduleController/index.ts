@@ -761,9 +761,9 @@ class scheduleController {
             const groups = await Groups.find();
 
             // Calculate the number of days in the specified month
-            const daysInMonth = new Date(year, month, 0).getDate();
+            const daysInMonth = new Date(year, month, 1).getDate();
 
-            for (let day = 1; day <= 3; day++) {
+            for (let day = 1; day <= 1; day++) {
                 const date = new Date(year, month - 1, day); // month is zero-based in JS Date
 
                 for (const group of groups) {
