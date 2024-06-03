@@ -773,15 +773,16 @@ class scheduleController {
             for (let day = 1; day <= daysInMonth; day++) {
                 const date = new Date(year, month - 1, day); // month is zero-based in JS Date
 
-                for (const group of groups) {
-                    const scheduleItems = [];
+                for (let i = 1; i <= 4; i++) {
 
-                    const groupDisciplines = await Disciplines.find({ 'groups.item': group._id }).populate('teachers');
+                    for (const group of groups) {
+                        const scheduleItems = [];
 
-                    console.log('Группа: ', group.name, 'Дисциплины группы: ', groupDisciplines)
+                        const groupDisciplines = await Disciplines.find({ 'groups.item': group._id }).populate('teachers');
 
-                    if (groupDisciplines.length) {
-                        for (let i = 1; i <= 4; i++) {
+                        console.log('Группа: ', group.name, 'Дисциплины группы: ', groupDisciplines)
+
+                        if (groupDisciplines.length) {
                             let selectedDiscipline;
                             let selectedTeacher;
                             let selectedAudithoria;
