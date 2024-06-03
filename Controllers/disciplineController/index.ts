@@ -866,7 +866,7 @@ class disciplineController {
                 return res.status(404).json({ error: "Дисциплина не найдена" });
             }
     
-            const groupIndex = discipline.groups.findIndex(g => g.item.toString() === groupId);
+            const groupIndex = discipline.groups.findIndex(g => g._id.toString() === groupId);
             if (groupIndex === -1) {
                 return res.status(404).json({ error: "Группа не найдена в дисциплине" });
             }
