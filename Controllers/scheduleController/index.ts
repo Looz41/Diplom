@@ -760,52 +760,43 @@ class scheduleController {
             const { year, month } = req.body;
             const groups = await Groups.find();
 
-            const availableTypes = [
-                'Практическая работа',
-                'Лабораторная работа',
-                'Зачет',
-                'Экзамен'
-            ];
-
             // Calculate the number of days in the specified month
             const daysInMonth = new Date(year, month, 0).getDate();
 
             for (let day = 1; day <= daysInMonth; day++) {
                 const date = new Date(year, month - 1, day); // month is zero-based in JS Date
 
-                for (let i = 1; i <= 4; i++) {
-                    for (const group of groups) {
-                        const scheduleItems = [];
+                for (const group of groups) {
+                    const scheduleItems = [];
 
-                        const groupDisciplines = await Disciplines.find({ 'groups.item': group._id }).populate('teachers');
+                    const groupDisciplines = await Disciplines.find({ 'groups.item': group._id }).populate('teachers');
 
-                        console.log('Группа: ', group.name, 'Дисциплины группы: ', groupDisciplines)
+                    if (groupDisciplines.length) {
+                        const filteredDisciplines = groupDisciplines.sort((disciplineA, disciplineB) => {
+                            const aH_A = disciplineA.groups.find(g => g.item.toString() === group._id.toString()).aH;
+                            const relevantBurdenA = disciplineA.groups.find(g => g.item.toString() === group._id.toString()).burden.find(burdenItem => {
+                                return new Date(burdenItem.month).getMonth() === month - 1 && new Date(burdenItem.month).getFullYear() === year;
+                            });
+                            const hH_A = relevantBurdenA ? relevantBurdenA.hH : .1;
 
-                        if (groupDisciplines.length) {
+                            const aH_B = disciplineB.groups.find(g => g.item.toString() === group._id.toString()).aH;
+                            const relevantBurdenB = disciplineB.groups.find(g => g.item.toString() === group._id.toString()).burden.find(burdenItem => {
+                                return new Date(burdenItem.month).getMonth() === month - 1 && new Date(burdenItem.month).getFullYear() === year;
+                            });
+                            const hH_B = relevantBurdenB ? relevantBurdenB.hH : .1;
+
+                            const actual_hH_A = hH_A === 0 ? .1 : hH_A;
+                            const actual_hH_B = hH_B === 0 ? .1 : hH_B;
+
+                            return (aH_B / actual_hH_B) - (aH_A / actual_hH_A);
+                        });
+
+                        for (let i = 1; i <= 4; i++) {
                             let selectedDiscipline;
                             let selectedTeacher;
                             let selectedAudithoria;
                             let isTeacherAvailable = false;
                             let isAudithoriaAvailable = false;
-
-                            const filteredDisciplines = groupDisciplines.sort((disciplineA, disciplineB) => {
-                                const aH_A = disciplineA.groups.find(g => g.item.toString() === group._id.toString()).aH;
-                                const relevantBurdenA = disciplineA.groups.find(g => g.item.toString() === group._id.toString()).burden.find(burdenItem => {
-                                    return new Date(burdenItem.month).getMonth() === month - 1 && new Date(burdenItem.month).getFullYear() === year;
-                                });
-                                const hH_A = relevantBurdenA ? relevantBurdenA.hH : .1;
-
-                                const aH_B = disciplineB.groups.find(g => g.item.toString() === group._id.toString()).aH;
-                                const relevantBurdenB = disciplineB.groups.find(g => g.item.toString() === group._id.toString()).burden.find(burdenItem => {
-                                    return new Date(burdenItem.month).getMonth() === month - 1 && new Date(burdenItem.month).getFullYear() === year;
-                                });
-                                const hH_B = relevantBurdenB ? relevantBurdenB.hH : .1;
-
-                                const actual_hH_A = hH_A === 0 ? .1 : hH_A;
-                                const actual_hH_B = hH_B === 0 ? .1 : hH_B;
-
-                                return (aH_B / actual_hH_B) - (aH_A / actual_hH_A);
-                            });
 
                             for (const discipline of filteredDisciplines) {
                                 const filteredTeachers = (discipline.teachers as any).sort((teacherA, teacherB) => {
@@ -834,13 +825,12 @@ class scheduleController {
                                         'items.number': i
                                     });
 
-                                    const maxAhTeacher = teacher.aH <= teacher.burden.find(burdenItem => new Date(burdenItem.mounth).getMonth() === month - 1 && new Date(burdenItem.mounth).getFullYear() === year)?.hH
+                                    const maxAhTeacher = teacher.aH <= teacher.burden.find(burdenItem => new Date(burdenItem.mounth).getMonth() === month - 1 && new Date(burdenItem.mounth).getFullYear() === year)?.hH;
 
-                                    console.log('МБ Препод: ', teacher.surname, 'Пара: ', i, 'Группа', group.name)
                                     if (!isTeacherOccupied && !maxAhTeacher) {
                                         isTeacherAvailable = true;
-                                        selectedTeacher = await Teachers.findById(teacher._id);
-                                        selectedDiscipline = await Disciplines.findById(discipline._id);
+                                        selectedTeacher = teacher;
+                                        selectedDiscipline = discipline;
 
                                         const audithories = await Audithories.find();
                                         for (const audithoria of audithories) {
@@ -851,22 +841,21 @@ class scheduleController {
                                             });
 
                                             if (!isAudithoriaOccupied) {
-                                                console.log('Кабинет: ', audithoria.name, 'Пара: ', i, 'Группа', group.name)
                                                 isAudithoriaAvailable = true;
                                                 selectedAudithoria = audithoria;
-                                                break
+                                                break;
                                             }
                                         }
-                                        console.log('Препод: ', teacher.surname, 'Пара: ', i, 'Группа', group.name)
-                                        if (isAudithoriaAvailable && isTeacherAvailable) break
+
+                                        if (isAudithoriaAvailable && isTeacherAvailable) break;
                                     }
                                 }
 
-                                if (isTeacherAvailable && isAudithoriaAvailable) break; // Move break here to ensure we move to the next discipline only if necessary
+                                if (isTeacherAvailable && isAudithoriaAvailable) break;
                             }
 
                             if (selectedDiscipline && selectedTeacher && isTeacherAvailable && isAudithoriaAvailable) {
-                                const type = '664a7b904a39cebfdb541a74';
+                                const type = '664a7b904a39cebfdb541a74'; // Assuming this is the ID for the type
 
                                 scheduleItems.push({
                                     discipline: selectedDiscipline._id,
@@ -885,12 +874,12 @@ class scheduleController {
                                 }
 
                                 // Update or create burden for each group in selectedDiscipline
-                                for (const group of selectedDiscipline.groups) {
-                                    const currentMonthGroupBurden = group.burden.find(b => b.month.getMonth() === month - 1 && b.month.getFullYear() === year);
+                                for (const groupItem of selectedDiscipline.groups) {
+                                    const currentMonthGroupBurden = groupItem.burden.find(b => b.month.getMonth() === month - 1 && b.month.getFullYear() === year);
                                     if (currentMonthGroupBurden) {
                                         currentMonthGroupBurden.hH += 2;
                                     } else {
-                                        group.burden.push({ month: date, hH: 2 });
+                                        groupItem.burden.push({ month: date, hH: 2 });
                                     }
                                 }
 
@@ -905,7 +894,6 @@ class scheduleController {
                                 group: group._id,
                                 items: scheduleItems
                             });
-                            console.log(newSchedule, 'Day:', day);
                             await newSchedule.save();
                         }
                     }
@@ -917,7 +905,6 @@ class scheduleController {
             res.status(500).json({ message: 'Ошибка сервера' });
         }
     }
-
 }
 
 export { scheduleController };
