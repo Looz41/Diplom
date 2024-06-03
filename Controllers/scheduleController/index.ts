@@ -772,31 +772,31 @@ class scheduleController {
                     const groupDisciplines = await Disciplines.find({ 'groups.item': group._id }).populate('teachers');
 
                     if (groupDisciplines.length) {
-                        const filteredDisciplines = groupDisciplines.sort((disciplineA, disciplineB) => {
-                            const aH_A = disciplineA.groups.find(g => g.item.toString() === group._id.toString()).aH;
-                            const relevantBurdenA = disciplineA.groups.find(g => g.item.toString() === group._id.toString()).burden.find(burdenItem => {
-                                return new Date(burdenItem.month).getMonth() === month - 1 && new Date(burdenItem.month).getFullYear() === year;
-                            });
-                            const hH_A = relevantBurdenA ? relevantBurdenA.hH : .1;
-
-                            const aH_B = disciplineB.groups.find(g => g.item.toString() === group._id.toString()).aH;
-                            const relevantBurdenB = disciplineB.groups.find(g => g.item.toString() === group._id.toString()).burden.find(burdenItem => {
-                                return new Date(burdenItem.month).getMonth() === month - 1 && new Date(burdenItem.month).getFullYear() === year;
-                            });
-                            const hH_B = relevantBurdenB ? relevantBurdenB.hH : .1;
-
-                            const actual_hH_A = hH_A === 0 ? .1 : hH_A;
-                            const actual_hH_B = hH_B === 0 ? .1 : hH_B;
-
-                            return (aH_B / actual_hH_B) - (aH_A / actual_hH_A);
-                        });
-
                         for (let i = 1; i <= 4; i++) {
                             let selectedDiscipline;
                             let selectedTeacher;
                             let selectedAudithoria;
                             let isTeacherAvailable = false;
                             let isAudithoriaAvailable = false;
+
+                            const filteredDisciplines = groupDisciplines.sort((disciplineA, disciplineB) => {
+                                const aH_A = disciplineA.groups.find(g => g.item.toString() === group._id.toString()).aH;
+                                const relevantBurdenA = disciplineA.groups.find(g => g.item.toString() === group._id.toString()).burden.find(burdenItem => {
+                                    return new Date(burdenItem.month).getMonth() === month - 1 && new Date(burdenItem.month).getFullYear() === year;
+                                });
+                                const hH_A = relevantBurdenA ? relevantBurdenA.hH : .1;
+
+                                const aH_B = disciplineB.groups.find(g => g.item.toString() === group._id.toString()).aH;
+                                const relevantBurdenB = disciplineB.groups.find(g => g.item.toString() === group._id.toString()).burden.find(burdenItem => {
+                                    return new Date(burdenItem.month).getMonth() === month - 1 && new Date(burdenItem.month).getFullYear() === year;
+                                });
+                                const hH_B = relevantBurdenB ? relevantBurdenB.hH : .1;
+
+                                const actual_hH_A = hH_A === 0 ? .1 : hH_A;
+                                const actual_hH_B = hH_B === 0 ? .1 : hH_B;
+
+                                return (aH_B / actual_hH_B) - (aH_A / actual_hH_A);
+                            });
 
                             for (const discipline of filteredDisciplines) {
                                 const filteredTeachers = (discipline.teachers as any).sort((teacherA, teacherB) => {
