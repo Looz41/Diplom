@@ -168,7 +168,7 @@ class scheduleController {
                 }
 
                 // Validate if PC is required
-                if (avaliableTypes.includes(type.name) && !(discipline.pc && audithoria.pc)) {
+                if (avaliableTypes.includes(type.name) && (discipline.pc && !audithoria.pc)) {
                     return res.status(400).json({ message: `Дисциплина ${discipline.name} на ${type.name} требует компьютерный класс` });
                 }
             }
