@@ -149,12 +149,12 @@ class scheduleController {
                     groupItem.item.equals(group)
                 );
                 if (!disciplineExistsInGroup) {
-                    return res.status(400).json({ message: `Дисциплина с ID ${item.discipline} не прогодится в группе ${group}` });
+                    return res.status(400).json({ message: `Дисциплина с ID ${item.discipline} не проводится в группе ${group}` });
                 }
 
                 const teacherValid = discipline.teachers.some(teacherId => teacherId.equals(item.teacher));
                 if (!teacherValid) {
-                    return res.status(400).json({ message: `Учитель с ID ${item.teacher} не ведет дисциплину с ID ${item.discipline}` });
+                    return res.status(400).json({ message: `Преподаватель  с ID ${item.teacher} не ведет дисциплину с ID ${item.discipline}` });
                 }
 
                 const audithoria = await Audithories.findOne({ _id: item.audithoria });
@@ -760,11 +760,10 @@ class scheduleController {
             const { year, month } = req.body;
             const groups = await Groups.find();
 
-            // Calculate the number of days in the specified month
             const daysInMonth = new Date(year, month, 0).getDate();
 
             for (let day = 1; day <= daysInMonth; day++) {
-                const date = new Date(year, month - 1, day); // month is zero-based in JS Date
+                const date = new Date(year, month - 1, day);
 
                 for (const group of groups) {
                     const scheduleItems = [];
@@ -865,7 +864,7 @@ class scheduleController {
                             }
 
                             if (selectedDiscipline && selectedTeacher && isTeacherAvailable && isAudithoriaAvailable) {
-                                const type = '664a7b904a39cebfdb541a74'; // Assuming this is the ID for the type
+                                const type = '664a7b904a39cebfdb541a74';
 
                                 scheduleItems.push({
                                     discipline: selectedDiscipline._id,
@@ -875,7 +874,6 @@ class scheduleController {
                                     number: i
                                 });
 
-                                // Update or create burden for selectedTeacher
                                 const currentMonthTeacherBurden = selectedTeacher.burden.find(b => b.mounth.getMonth() === month - 1 && b.mounth.getFullYear() === year);
                                 if (currentMonthTeacherBurden) {
                                     currentMonthTeacherBurden.hH += 2;
@@ -883,7 +881,6 @@ class scheduleController {
                                     selectedTeacher.burden.push({ mounth: date, hH: 2 });
                                 }
 
-                                // Update or create burden for each group in selectedDiscipline
                                 for (const groupItem of selectedDiscipline.groups) {
                                     const currentMonthGroupBurden = groupItem.burden.find(b => b.month.getMonth() === month - 1 && b.month.getFullYear() === year);
                                     if (currentMonthGroupBurden) {

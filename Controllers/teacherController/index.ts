@@ -17,7 +17,7 @@ const getTeachersByDate = (teachers: TeacherWithBurden[], date: Date): any[] => 
     return teachers.map(teacher => {
         const filteredBurden = teacher.burden.filter(burden => {
             if (!burden.mounth) return false
-            const burdenMonth = burden.mounth.getMonth();
+            const burdenMonth = burden.mounth.getMonth() - 1;
             const burdenYear = burden.mounth.getFullYear();
             return burdenMonth === targetMonth && burdenYear === targetYear;
         });
