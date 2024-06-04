@@ -761,17 +761,15 @@ class scheduleController {
             const groups = await Groups.find();
 
             // Calculate the number of days in the specified month
-            const daysInMonth = new Date(year, month, 1).getDate();
+            const daysInMonth = new Date(year, month, 0).getDate();
 
-            for (let day = 1; day <= 1; day++) {
+            for (let day = 1; day <= daysInMonth; day++) {
                 const date = new Date(year, month - 1, day); // month is zero-based in JS Date
 
                 for (const group of groups) {
                     const scheduleItems = [];
 
                     const groupDisciplines = await Disciplines.find({ 'groups.item': group._id }).populate('teachers');
-
-                    console.log('Все дисциплины для группы ', group.name, ' - ', groupDisciplines)
 
                     if (groupDisciplines.length) {
                         for (let i = 1; i <= 4; i++) {
@@ -791,17 +789,15 @@ class scheduleController {
                                 !scheduledDisciplineIds.includes(discipline._id.toString())
                             );
 
-                            console.log('Доступные дисциплины для группы ', group.name, ' - ', availableDisciplines)
-
                             const filteredDisciplines = availableDisciplines.sort((disciplineA, disciplineB) => {
-                                const aH_A = disciplineA.groups.find(g => g.item.toString() === group._id.toString()).aH;
-                                const relevantBurdenA = disciplineA.groups.find(g => g.item.toString() === group._id.toString()).burden.find(burdenItem => {
+                                const aH_A = disciplineA.groups.find(g => g.item.toString() === group._id.toString())?.aH;
+                                const relevantBurdenA = disciplineA.groups.find(g => g.item.toString() === group._id.toString())?.burden.find(burdenItem => {
                                     return new Date(burdenItem.month).getMonth() === month - 1 && new Date(burdenItem.month).getFullYear() === year;
                                 });
                                 const hH_A = relevantBurdenA ? relevantBurdenA.hH : .1;
 
-                                const aH_B = disciplineB.groups.find(g => g.item.toString() === group._id.toString()).aH;
-                                const relevantBurdenB = disciplineB.groups.find(g => g.item.toString() === group._id.toString()).burden.find(burdenItem => {
+                                const aH_B = disciplineB.groups.find(g => g.item.toString() === group._id.toString())?.aH;
+                                const relevantBurdenB = disciplineB.groups.find(g => g.item.toString() === group._id.toString())?.burden.find(burdenItem => {
                                     return new Date(burdenItem.month).getMonth() === month - 1 && new Date(burdenItem.month).getFullYear() === year;
                                 });
                                 const hH_B = relevantBurdenB ? relevantBurdenB.hH : .1;
